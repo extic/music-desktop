@@ -8,51 +8,62 @@
       </div>
     </div>
     <section class="song-list-container">
-      <!-- <h2 class="song-section-title" v-if="favoriteSongList.length !== 0">Favorite Songs</h2>
-      <song-list :song-list="favoriteSongList"></song-list>
-      <hr v-if="favoriteSongList.length !== 0 && registeredSongList.length !== 0" />
-      <h2 class="song-section-title" v-if="allSongList.length !== 0">All Songs</h2>
-      <song-list :song-list="allSongList"></song-list>
-      <hr v-if="allSongList.length !== 0" />
-      <div v-if="allSongList.length === 0" class="no-match">No song matches your filter</div> -->
+      <transition-group class="song-list" name="flip-list" tag="div">
+        <div
+          v-for="song in filteredSongList"
+          :key="song.uuid"
+          class="song-list-box-container"
+        >
+          <div @click="selectSong(song)">
+            <song-box :song="song" />
+          </div>
+        </div>
+      </transition-group>
+      <div v-if="filteredSongList.length === 0" class="no-match">
+        No song matches your filter
+      </div>
     </section>
   </div>
 </template>
 
 <script lang="ts">
 import { computed, defineComponent, onMounted, ref } from "vue";
-// import { songs } from "@/store/song-module";
-// import { useStore } from "@/store";
-// import SongList from "@/components/SongList.vue";
-// import { Song } from "@/services/music-files/song-serializer.service";
+import { Song, useSongStore } from "../store/song-store";
+import SongBox from "../components/SongBox.vue";
 
 export default defineComponent({
   name: "SongListPage",
 
-  // components: { SongList },
+  components: { SongBox },
 
   setup() {
-    // const store = useStore();
+    const store = useSongStore();
 
     const filter = ref("");
+    const songs = ref([] as Song[]);
 
-    const allSongList = computed(() => {
-      // return songs(store)
-      //   .songList.filter((it) => filter.value === "" || it.name.toLowerCase().includes(filter.value) || it.author.toLowerCase().includes(filter.value))
-      //   .sort((s1: Song, s2: Song) => s1.name.localeCompare(s2.name));
+    const filteredSongList = computed(() => {
+      return songs.value
+        .filter(
+          (it) =>
+            filter.value === "" ||
+            it.name.toLowerCase().includes(filter.value) ||
+            it.author.toLowerCase().includes(filter.value)
+        )
+        .sort((s1: Song, s2: Song) => s1.name.localeCompare(s2.name));
     });
 
-    const favoriteSongList = computed(() => {
-      // const favorites = songs(store).favoriteSongs;
-      // return allSongList.value.filter((it) => favorites.includes(it.uuid));
-    });
+    const selectSong = (song: Song) => {
+      // router.push({ name: "Song", params: { songId: song.uuid } });
+    };
 
     onMounted(() => {
+      songs.value = store.songList;
       // store.commit("setKeyboardButtonShown", false);
       // store.dispatch("fetchSongList");
     });
 
-    return { filter, favoriteSongList, allSongList };
+    return { filter, selectSong, filteredSongList, songs };
   },
 });
 </script>
@@ -100,7 +111,7 @@ export default defineComponent({
         width: 2em;
         height: 2em;
         border: none;
-        background-image: url("/static/assets/images/clear.svg");
+        background-image: url("../assets/images/clear.svg");
         background-size: 1.2em;
         background-color: transparent;
         background-repeat: no-repeat;
@@ -129,12 +140,43 @@ export default defineComponent({
     padding: 1em 3em;
     overflow: auto;
 
+    .song-list {
+      display: flex;
+      flex-wrap: wrap;
+      column-gap: 3em;
+      row-gap: 3em;
+      padding: 1em 3em;
+      overflow: auto;
+
+      .song-list-box-container {
+        display: inline-block;
+        position: relative;
+        opacity: 1;
+        transform: scale(1);
+        transition: transform 0.3s, opacity 0.3s;
+        font-size: 0.7em;
+      }
+    }
+
     hr {
       height: 1px;
       border: 0;
       border-bottom: 1px solid lightgray;
       margin: 1em 0;
     }
+  }
+
+  .flip-list-move {
+  }
+
+  .flip-list-enter,
+  .flip-list-leave-to {
+    opacity: 0;
+    transform: scale(0.1);
+  }
+
+  .flip-list-leave-active {
+    position: absolute;
   }
 
   .no-match {

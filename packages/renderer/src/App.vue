@@ -1,24 +1,40 @@
-<script setup lang="ts">
-// This starter template is using Vue 3 <script setup> SFCs
-// Check out https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup
-import HelloWorld from "./components/HelloWorld.vue";
-</script>
-
 <template>
   <router-view />
-  <!-- <div class="logo-box">
-    <img style="height: 140px" src="./assets/electron.png" />
-    <span />
-    <img style="height: 140px" src="./assets/vite.svg" />
-    <span />
-    <img style="height: 140px" src="./assets/vue.png" />
-  </div>
-  <HelloWorld msg="Hello Vue 3 + TypeScript + Vite" />
-  <div class="static-public">
-    Place static files into the <code>src/renderer/public</code> folder
-    <img style="width: 90px" :src="'./images/node.png'" />
-  </div> -->
 </template>
+
+<script lang="ts">
+import { defineComponent } from "vue";
+import { midiService, MidiCallback } from "./services/midi-service";
+import { useMidiStore } from "./store/midi-store";
+import { useSongStore } from "./store/song-store";
+
+export default defineComponent({
+  name: "App",
+
+  setup() {
+    const midiStore = useMidiStore();
+    const songStore = useSongStore();
+
+    class MidiCallBackImpl implements MidiCallback {
+      setConnected(connected: boolean): void {
+        midiStore.setConnected(connected);
+      }
+
+      keyOn(key: number, velocity: number) {
+        midiStore.setUserVelocity(velocity);
+        midiStore.keyOn(key, velocity);
+      }
+
+      keyOff(key: number) {
+        midiStore.keyOff(key);
+      }
+    }
+
+    midiService.init(new MidiCallBackImpl());
+    songStore.loadSongs();
+  },
+});
+</script>
 
 <style lang="scss">
 html {

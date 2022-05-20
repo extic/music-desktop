@@ -1,5 +1,11 @@
 <template>
-  <GenericDialog ref="genericDialog" :modal="true" @dialogAppeared="dialogAppeared()" @enterPressed="ok()" class="settings-dialog">
+  <GenericDialog
+    ref="genericDialog"
+    :modal="true"
+    @dialogAppeared="dialogAppeared()"
+    @enterPressed="ok()"
+    class="settings-dialog"
+  >
     <template #dialog-title>
       <span>Settings</span>
     </template>
@@ -7,18 +13,46 @@
       <div class="sign-in-dialog-content">
         <div class="dialog-content">
           <label for="midi-input-device">MIDI Input Device</label>
-          <select id="midi-input-device" ref="midiInputDevice" v-model="midiInputDevice" :disabled="availableMidiInputs().length === 0">
-            <option v-for="input in availableMidiInputs()" :key="input" :value="input">{{ input.name }}</option>
+          <select
+            id="midi-input-device"
+            ref="midiInputDevice"
+            v-model="midiInputDevice"
+            :disabled="availableMidiInputs().length === 0"
+          >
+            <option
+              v-for="input in availableMidiInputs()"
+              :key="input.id"
+              :value="input"
+            >
+              {{ input.name }}
+            </option>
           </select>
 
           <label for="midi-output-device">MIDI Output Device</label>
-          <select id="midi-output-device" ref="midiOutputDevice" v-model="midiOutputDevice" :disabled="availableMidiOutputs().length === 0">
-            <option v-for="output in availableMidiOutputs()" :key="output" :value="output">{{ output.name }}</option>
+          <select
+            id="midi-output-device"
+            ref="midiOutputDevice"
+            v-model="midiOutputDevice"
+            :disabled="availableMidiOutputs().length === 0"
+          >
+            <option
+              v-for="output in availableMidiOutputs()"
+              :key="output.id"
+              :value="output"
+            >
+              {{ output.name }}
+            </option>
           </select>
 
           <label for="midi-instrument">Instrument</label>
           <select id="midi-instrument" v-model="midiInstrument">
-            <option v-for="instrument in availableMidiInstruments()" :key="instrument" :value="instrument">{{ instrument.name }}</option>
+            <option
+              v-for="instrument in availableMidiInstruments()"
+              :key="instrument.code"
+              :value="instrument"
+            >
+              {{ instrument.name }}
+            </option>
           </select>
           <div class="buttons">
             <button @click="cancel()">Cancel</button>
@@ -32,11 +66,19 @@
 
 <script lang="ts">
 import { createApp, defineComponent } from "vue";
-import GenericDialog, { createDialogMountingPoint, focusOnModalOnly } from "@/components/GenericDialog.vue";
-import { key } from "@/store";
+import GenericDialog, {
+  createDialogMountingPoint,
+  focusOnModalOnly,
+} from "./GenericDialog.vue";
+// import { key } from "@/store";
 import { ComponentPublicInstance } from "@vue/runtime-core";
-import SettingsDialog from "@/components/SettingsDialog.vue";
-import { AvailableMidiInstruments, MidiDeviceDescriptor, MidiInstrument, midiService } from "@/services/midi-service";
+import SettingsDialog from "./components/SettingsDialog.vue";
+import {
+  AvailableMidiInstruments,
+  MidiDeviceDescriptor,
+  MidiInstrument,
+  midiService,
+} from "../services/midi-service";
 
 export default defineComponent({
   name: "SettingsDialog",
@@ -53,17 +95,17 @@ export default defineComponent({
   },
 
   mounted() {
-    this.midiInputDevice = midiService.selectedInputDescriptor;
-    this.midiOutputDevice = midiService.selectedOutputDescriptor;
+    this.midiInputDevice = midiService.selectedInputDescriptor();
+    this.midiOutputDevice = midiService.selectedOutputDescriptor();
   },
 
   methods: {
     availableMidiInputs(): MidiDeviceDescriptor[] {
-      return midiService.availableMidiInputNames;
+      return midiService.availableMidiInputNames();
     },
 
     availableMidiOutputs(): MidiDeviceDescriptor[] {
-      return midiService.availableMidiOutputNames;
+      return midiService.availableMidiOutputNames();
     },
 
     availableMidiInstruments(): MidiInstrument[] {
@@ -81,25 +123,29 @@ export default defineComponent({
     },
 
     cancel() {
-      const genericDialog = this.$refs.genericDialog as unknown as typeof GenericDialog;
+      const genericDialog = this.$refs
+        .genericDialog as unknown as typeof GenericDialog;
       genericDialog.close();
     },
 
     ok() {
       midiService.setSelectedInput(this.midiInputDevice?.id ?? null);
       midiService.setSelectedOutput(this.midiOutputDevice?.id ?? null);
-      midiService.setInstrument(this.midiInstrument);
+      midiService.setInstrument(this.midiInstrument());
 
-      const genericDialog = this.$refs.genericDialog as unknown as typeof GenericDialog;
+      const genericDialog = this.$refs
+        .genericDialog as unknown as typeof GenericDialog;
       genericDialog.close();
     },
   },
 });
 
-export function openSettingsDialog(parent: ComponentPublicInstance): void {
-  createApp(SettingsDialog).use(parent.$store, key).mount(createDialogMountingPoint());
-  focusOnModalOnly(".settings-dialog");
-}
+// export function openSettingsDialog(parent: ComponentPublicInstance): void {
+//   createApp(SettingsDialog)
+//     .use(parent.$store, key)
+//     .mount(createDialogMountingPoint());
+//   focusOnModalOnly(".settings-dialog");
+// }
 </script>
 
 <style lang="scss" scoped>

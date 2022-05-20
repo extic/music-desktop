@@ -10,8 +10,8 @@ export const utils = {
       event.returnValue = "pong";
     });
 
-    ipcMain.on("getSongs", (event, arg) => {
-      event.returnValue = SongSerializer.load().map((it) => it.name);
+    ipcMain.on("load-songs", (event, arg) => {
+      event.returnValue = SongSerializer.load();
     });
   },
 };

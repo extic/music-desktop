@@ -10,11 +10,22 @@
       </div> -->
     </div>
     <div class="controls">
-      <!-- <div class="midi">
-        <img v-if="isMidiConnected" alt="midi on" src="../assets/images/midi-connected.svg" title="MIDI device connected successfully" />
-        <img v-else alt="midi off" class="disconnected" src="../assets/images/midi-disconnected.svg" title="MIDI device is not connected" />
-      </div> -->
-      <div class="separator" />
+      <div class="midi">
+        <img
+          v-if="isMidiConnected"
+          alt="midi on"
+          src="../assets/images/midi-connected.svg"
+          title="MIDI device connected successfully"
+        />
+        <img
+          v-else
+          alt="midi off"
+          class="disconnected"
+          src="../assets/images/midi-disconnected.svg"
+          title="MIDI device is not connected"
+        />
+      </div>
+      <div class="separator"></div>
       <div class="button fullscreen">
         <img
           v-if="isInFullscreen"
@@ -53,6 +64,7 @@ import { computed, defineComponent, ref } from "vue";
 // import { midi } from "@/store/midi-module";
 // import { layout } from "@/store/layout-module";
 import { useRouter } from "vue-router";
+import { useMidiStore } from "../store/midi-store";
 // import { openSettingsDialog } from "@/components/SettingsDialog.vue";
 
 export default defineComponent({
@@ -61,6 +73,7 @@ export default defineComponent({
   setup: function () {
     // const store = useStore();
     const router = useRouter();
+    const midi = useMidiStore();
 
     const isInFullscreen = ref(false);
 
@@ -68,7 +81,7 @@ export default defineComponent({
     // const songAuthor = computed(() => songs(store).selectedSong?.author);
     // const isShowKeyboardButton = computed(() => layout(store).keyboardButtonShown);
     // const isShowKeyboard = computed(() => layout(store).keyboardShown);
-    // const isMidiConnected = computed(() => midi(store).connected);
+    const isMidiConnected = computed(() => midi.connected);
 
     const backPressed = () => {
       // store.dispatch("resetPlay");
@@ -100,7 +113,7 @@ export default defineComponent({
       // songAuthor,
       // isShowKeyboardButton,
       // isShowKeyboard,
-      // isMidiConnected,
+      isMidiConnected,
       backPressed,
       toggleFullScreen,
       setKeyboardShown,

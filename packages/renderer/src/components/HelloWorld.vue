@@ -10,7 +10,7 @@ const songs = ref([]);
 const testClick = () => {
   console.log("here");
   console.log(ipcRenderer.sendSync("synchronous-message", "ping"));
-  songs.value = ipcRenderer.sendSync("getSongs");
+  // songs.value = ipcRenderer.sendSync("getSongs");
 };
 </script>
 
