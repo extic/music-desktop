@@ -1,8 +1,9 @@
 {
-  "name": "electron-vue-vite",
+  "name": "extremely-music",
+  "productName": "Extremely Music",
   "version": "1.0.0",
   "main": "dist/main/index.cjs",
-  "author": "草鞋没号 <308487730@qq.com>",
+  "author": "Barak Levinson",
   "license": "MIT",
   "scripts": {
     "dev": "node scripts/watch.mjs",

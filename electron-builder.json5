@@ -20,6 +20,7 @@
       },
     ],
     artifactName: "${productName}_${version}.${ext}",
+    icon: "./packages/renderer/app-icon.ico",
   },
   nsis: {
     oneClick: false,
