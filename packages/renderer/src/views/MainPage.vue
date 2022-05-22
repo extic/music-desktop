@@ -1,18 +1,20 @@
 <template>
   <div class="main-page">
-    <HeaderBar />
+    <HeaderBar style="z-index: 20" />
     <router-view />
     <div class="background"></div>
+    <SettingsPane />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
 import HeaderBar from "../components/HeaderBar.vue";
+import SettingsPane from "../components/SettingsPane.vue";
 
 export default defineComponent({
   name: "MainPage",
-  components: { HeaderBar },
+  components: { HeaderBar, SettingsPane },
 });
 </script>
 

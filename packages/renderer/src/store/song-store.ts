@@ -27,7 +27,7 @@ export const useSongStore = defineStore("song", {
     },
 
     loadSongs() {
-      this._songList = <Song[]>ipcRenderer.sendSync("load-songs");
+      this._songList = <Song[]>[]; //ipcRenderer.sendSync("load-songs");
     },
   },
 });

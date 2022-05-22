@@ -50,6 +50,8 @@ async function createWindow() {
     if (url.startsWith("https:")) shell.openExternal(url);
     return { action: "deny" };
   });
+
+  utils.aaa(win);
 }
 
 app.whenReady().then(createWindow);
@@ -75,5 +77,3 @@ app.on("activate", () => {
     createWindow();
   }
 });
-
-utils.aaa();

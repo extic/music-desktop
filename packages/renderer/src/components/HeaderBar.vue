@@ -11,19 +11,8 @@
     </div>
     <div class="controls">
       <div class="midi">
-        <img
-          v-if="isMidiConnected"
-          alt="midi on"
-          src="../assets/images/midi-connected.svg"
-          title="MIDI device connected successfully"
-        />
-        <img
-          v-else
-          alt="midi off"
-          class="disconnected"
-          src="../assets/images/midi-disconnected.svg"
-          title="MIDI device is not connected"
-        />
+        <img v-if="isMidiConnected" alt="midi on" src="../assets/images/midi-connected.svg" title="MIDI device connected successfully" />
+        <img v-else alt="midi off" class="disconnected" src="../assets/images/midi-disconnected.svg" title="MIDI device is not connected" />
       </div>
       <div class="separator"></div>
       <div class="button fullscreen">
@@ -34,24 +23,14 @@
           title="Step out of full screen"
           @click="toggleFullScreen()"
         />
-        <img
-          v-else
-          alt="fullscreen off"
-          src="../assets/images/fullscreen-open.svg"
-          title="Open in full screen"
-          @click="toggleFullScreen()"
-        />
+        <img v-else alt="fullscreen off" src="../assets/images/fullscreen-open.svg" title="Open in full screen" @click="toggleFullScreen()" />
       </div>
       <!-- <div v-if="isShowKeyboardButton" class="button keyboard">
         <img v-if="isShowKeyboard" alt="keyboard on" src="../assets/images/show-keyboard.svg" title="Hide virtual keyboard" @click="setKeyboardShown(false)" />
         <img v-else alt="keyboard off" src="../assets/images/hide-keyboard.svg" title="Show virtual keyboard" @click="setKeyboardShown(true)" />
       </div> -->
       <div class="button settings">
-        <img
-          src="../assets/images/settings.svg"
-          title="Settings"
-          @click="openSettings"
-        />
+        <img src="../assets/images/settings.svg" title="Settings" @click="showSettings" />
       </div>
     </div>
   </div>
@@ -65,7 +44,7 @@ import { computed, defineComponent, ref } from "vue";
 // import { layout } from "@/store/layout-module";
 import { useRouter } from "vue-router";
 import { useMidiStore } from "../store/midi-store";
-// import { openSettingsDialog } from "@/components/SettingsDialog.vue";
+import { useSettingsStore } from "../store/settings-store";
 
 export default defineComponent({
   name: "HeaderBar",
@@ -74,6 +53,7 @@ export default defineComponent({
     // const store = useStore();
     const router = useRouter();
     const midi = useMidiStore();
+    const settings = useSettingsStore();
 
     const isInFullscreen = ref(false);
 
@@ -103,6 +83,10 @@ export default defineComponent({
       // store.commit("setKeyboardShown", show);
     };
 
+    const showSettings = async () => {
+      settings.setShown(!settings.shown);
+    };
+
     const goToAdmin = async () => {
       await router.push({ name: "Admin" });
     };
@@ -117,14 +101,9 @@ export default defineComponent({
       backPressed,
       toggleFullScreen,
       setKeyboardShown,
+      showSettings,
       goToAdmin,
     };
-  },
-
-  methods: {
-    openSettings() {
-      // openSettingsDialog(this);
-    },
   },
 });
 </script>
