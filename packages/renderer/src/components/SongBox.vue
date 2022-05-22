@@ -1,14 +1,9 @@
 <template>
-  <div class="song-box" @click="playSong(song)">
-    <div class="song-list-box" :class="{ locked: false /*song.locked*/ }">
+  <div class="song-box-container" :class="{ locked: false /*song.locked*/ }" @click="playSong(song)">
+    <div class="song-box">
       <div class="song-title">{{ song.name }}</div>
       <div class="song-author">{{ song.author }}</div>
-      <div
-        v-if="song.incomplete"
-        class="incomplete"
-        title="Incomplete score (Work in progress...)"
-      ></div>
-      <div class="lock" title="Available for pro users"></div>
+      <div v-if="song.incomplete" class="incomplete" title="Incomplete score (Work in progress...)"></div>
       <div
         class="favorite"
         :class="{ selected: isFavorite(song) }"
@@ -59,102 +54,86 @@ export default defineComponent({
 <style lang="scss" scoped>
 @import "../styles/variables";
 
-.song-box {
-  .song-list-box {
-    width: 16.5em;
-    height: 12.5em;
-    border: 1px solid gray;
-    border-radius: 1em;
-    box-shadow: 0 0 10px -2px black, inset 0 0 10px 2px #69ccef;
-    background-color: white;
+.song-box-container {
+  // justify-self: stretch;
+  // align-self: stretch;
+  // width: 57%;
+  border: 1px solid gray;
+  border-radius: 1em;
+  box-shadow: 0 0 10px -2px black, inset 0 0 10px 2px #69ccef;
+  background-color: white;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
+  // position: relative;
+  // position: absolute;
+  overflow: hidden;
+  width: 22em;
+  height: 15em;
+
+  &:hover {
+    background-color: #69ccef;
+    transform: scale(1.03);
+  }
+
+  .song-box {
     padding: 1em;
-    cursor: pointer;
-    transition: background-color 0.2s, transform 0.2s;
-    position: relative;
-    overflow: hidden;
+  }
 
-    &.locked {
-      cursor: inherit;
+  // .favorite {
+  //   position: absolute;
+  //   top: 0.8em;
+  //   left: 0.8em;
+  //   width: 1.5em;
+  //   height: 1.5em;
+  //   transition: all 0.2s ease-in-out;
+  //   display: block;
 
-      .lock {
-        position: absolute;
-        bottom: 0.8em;
-        right: 0.6em;
-        width: 1.5em;
-        height: 1.5em;
-        background-image: url("../assets/images/lock.svg");
-        background-size: cover;
-        opacity: 0.3;
-        transition: all 0.2s ease-in-out;
-      }
+  //   &.selected {
+  //     background-image: url("../assets/images/star.svg");
+  //     background-size: cover;
+  //   }
+  // }
 
-      &:hover {
-        background-color: white;
+  // &:hover {
+  //   background-color: #69ccef;
+  //   transform: scale(1.03);
 
-        .lock {
-          width: 3em;
-          height: 3em;
-          transform: rotateZ(-15deg);
-        }
-      }
-    }
+  //   .favorite {
+  //     position: absolute;
+  //     top: 0.8em;
+  //     left: 0.8em;
+  //     width: 1.5em;
+  //     height: 1.5em;
+  //     transition: all 0.2s ease-in-out;
+  //     background-image: url("../assets/images/star-empty.svg");
+  //     background-size: cover;
 
-    .favorite {
-      position: absolute;
-      top: 0.8em;
-      left: 0.8em;
-      width: 1.5em;
-      height: 1.5em;
-      transition: all 0.2s ease-in-out;
-      display: block;
+  //     &.selected {
+  //       background-image: url("../assets/images/star.svg");
+  //       background-size: cover;
+  //     }
+  //   }
+  // }
 
-      &.selected {
-        background-image: url("../assets/images/star.svg");
-        background-size: cover;
-      }
-    }
+  .song-title {
+    font-size: 1.8em;
+    margin: 1em 0 0.5em 0;
+    font-weight: bold;
+    text-shadow: 0 0 1em #87d8ff;
+  }
 
-    &:hover {
-      background-color: #69ccef;
-      transform: scale(1.03);
+  .song-author {
+    font-size: 1.3em;
+  }
 
-      .favorite {
-        position: absolute;
-        top: 0.8em;
-        left: 0.8em;
-        width: 1.5em;
-        height: 1.5em;
-        transition: all 0.2s ease-in-out;
-        background-image: url("../assets/images/star-empty.svg");
-        background-size: cover;
-
-        &.selected {
-          background-image: url("../assets/images/star.svg");
-          background-size: cover;
-        }
-      }
-    }
-
-    .song-title {
-      font-size: 1.8em;
-      margin: 1em 0 0.5em 0;
-      font-weight: bold;
-      text-shadow: 0 0 1em #87d8ff;
-    }
-
-    .song-author {
-      font-size: 1.3em;
-    }
-
-    .incomplete {
-      position: absolute;
-      top: 0;
-      right: 0;
-      width: 2em;
-      height: 2em;
-      background-color: #69ccef95;
-      border-radius: 0 0 0 100%;
-    }
+  .incomplete {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 2em;
+    height: 2em;
+    background-color: #69ccef95;
+    border-radius: 0 0 0 100%;
   }
 }
 </style>

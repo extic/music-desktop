@@ -8,20 +8,10 @@
       </div>
     </div>
     <section class="song-list-container">
-      <transition-group class="song-list" name="flip-list" tag="div">
-        <div
-          v-for="song in filteredSongList"
-          :key="song.uuid"
-          class="song-list-box-container"
-        >
-          <div @click="selectSong(song)">
-            <song-box :song="song" />
-          </div>
-        </div>
+      <transition-group class="song-list" name="list" tag="div">
+        <song-box :song="song" v-for="song in filteredSongList" :key="song.uuid" @click="selectSong(song)" />
       </transition-group>
-      <div v-if="filteredSongList.length === 0" class="no-match">
-        No song matches your filter
-      </div>
+      <div v-if="filteredSongList.length === 0" class="no-match">No song matches your filter</div>
     </section>
   </div>
 </template>
@@ -139,22 +129,43 @@ export default defineComponent({
   .song-list-container {
     padding: 1em 3em;
     overflow: auto;
+    font-size: 0.7em;
 
     .song-list {
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
       flex-wrap: wrap;
-      column-gap: 3em;
-      row-gap: 3em;
+      gap: 3em;
       padding: 1em 3em;
-      overflow: auto;
+      overflow: hidden;
+      justify-content: space-between;
 
-      .song-list-box-container {
-        display: inline-block;
-        position: relative;
-        opacity: 1;
-        transform: scale(1);
-        transition: transform 0.3s, opacity 0.3s;
-        font-size: 0.7em;
+      @media (max-width: 1780px) {
+        grid-template-columns: repeat(5, 1fr);
+      }
+
+      @media (max-width: 1520px) {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      @media (max-width: 1240px) {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .list-enter-from,
+      .list-leave-to {
+        opacity: 0;
+        transform: scale(0.01) translate(30px, 0);
+      }
+
+      .list-move,
+      .list-enter-active,
+      .list-leave-active {
+        transition: all 0.5s cubic-bezier(0.55, 0, 0.1, 1);
+      }
+
+      .list-leave-active {
+        position: absolute;
       }
     }
 
@@ -164,19 +175,6 @@ export default defineComponent({
       border-bottom: 1px solid lightgray;
       margin: 1em 0;
     }
-  }
-
-  .flip-list-move {
-  }
-
-  .flip-list-enter,
-  .flip-list-leave-to {
-    opacity: 0;
-    transform: scale(0.1);
-  }
-
-  .flip-list-leave-active {
-    position: absolute;
   }
 
   .no-match {

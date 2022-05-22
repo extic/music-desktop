@@ -47,6 +47,7 @@ body {
   height: 100%;
   margin: 0;
   padding: 0;
+  overflow: hidden;
 
   @media (max-width: 1200px) {
     font-size: 11px;
