@@ -28,6 +28,7 @@
 import { computed, defineComponent, onMounted, ref } from "vue";
 import { Song, useSongStore } from "../store/song-store";
 import SongBox from "../components/SongBox.vue";
+import { useRouter } from "vue-router";
 
 export default defineComponent({
   name: "SongListPage",
@@ -35,6 +36,7 @@ export default defineComponent({
   components: { SongBox },
 
   setup() {
+    const router = useRouter();
     const store = useSongStore();
 
     const filter = ref("");
@@ -53,7 +55,7 @@ export default defineComponent({
     });
 
     const selectSong = (song: Song) => {
-      // router.push({ name: "Song", params: { songId: song.uuid } });
+      router.push({ name: "Song", params: { songId: song.id } });
     };
 
     onMounted(() => {
@@ -85,15 +87,18 @@ export default defineComponent({
 
     .filter-button {
       @include pressable;
-      border: 1px solid gray;
+      border: 1px solid lightgray;
       border-radius: 4px;
       display: flex;
       flex-direction: row;
+      align-items: center;
+      align-self: stretch;
       padding: 0.4em 1em;
       gap: 0.5em;
       background-color: white;
       cursor: pointer;
       transition: background-color 0.2s;
+      font-size: 1.2em;
 
       &.selected {
         background-color: #69ccef;
@@ -220,19 +225,9 @@ export default defineComponent({
       margin: 1em 0;
     }
   }
-
   .no-match {
     font-size: 2em;
     margin-top: 4em;
   }
-
-  //a {
-  //    font-weight: bold;
-  //    color: #2c3e50;
-  //
-  //    &.router-link-exact-active {
-  //        color: #42b983;
-  //    }
-  //}
 }
 </style>

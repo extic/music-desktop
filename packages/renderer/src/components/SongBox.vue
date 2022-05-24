@@ -1,6 +1,6 @@
 <template>
-  <div class="song-box-container" :class="{ locked: false /*song.locked*/ }" @click="playSong(song)">
-    <div class="song-box">
+  <div class="song-box" :class="{ locked: false /*song.locked*/ }" @click="playSong(song)">
+    <div class="song-box-details">
       <div class="song-title">{{ song.name }}</div>
       <div class="song-author">{{ song.author }}</div>
       <div class="favorite" :class="{ selected: isFavorite(song) }" title="Mark as favorite" @click.stop="markFavorite(song)"></div>
@@ -28,6 +28,7 @@ export default defineComponent({
     const songs = useSongStore();
 
     const playSong = (song: Song) => {
+      songs.setSelectedSong(song);
       // router.push({ name: "Song", params: { songId: song.uuid } });
     };
 
@@ -47,31 +48,43 @@ export default defineComponent({
 <style lang="scss" scoped>
 @import "../styles/variables";
 
-.song-box-container {
-  // justify-self: stretch;
-  // align-self: stretch;
-  // width: 57%;
+.song-box {
   border: 1px solid gray;
   border-radius: 1em;
   box-shadow: 0 0 10px -2px black, inset 0 0 10px 2px #69ccef;
   background-color: white;
   cursor: pointer;
   transition: background-color 0.2s, transform 0.2s;
-  // position: relative;
-  // position: absolute;
   overflow: hidden;
   width: 22em;
   height: 15em;
+  position: relative;
 
   &:hover {
     background-color: #69ccef;
     transform: scale(1.03);
   }
 
-  .song-box {
-    padding: 1em;
-    position: relative;
+  .song-box-details {
+    margin: 1em;
+  }
 
+  .favorite {
+    position: absolute;
+    top: 0.8em;
+    left: 0.8em;
+    width: 1.5em;
+    height: 1.5em;
+    transition: all 0.2s ease-in-out;
+    display: block;
+
+    &.selected {
+      background-image: url("../assets/images/star.svg");
+      background-size: cover;
+    }
+  }
+
+  &:hover {
     .favorite {
       position: absolute;
       top: 0.8em;
@@ -79,36 +92,19 @@ export default defineComponent({
       width: 1.5em;
       height: 1.5em;
       transition: all 0.2s ease-in-out;
-      display: block;
+      background-image: url("../assets/images/star-empty.svg");
+      background-size: cover;
 
       &.selected {
         background-image: url("../assets/images/star.svg");
         background-size: cover;
       }
     }
-
-    &:hover {
-      .favorite {
-        position: absolute;
-        top: 0.8em;
-        left: 0.8em;
-        width: 1.5em;
-        height: 1.5em;
-        transition: all 0.2s ease-in-out;
-        background-image: url("../assets/images/star-empty.svg");
-        background-size: cover;
-
-        &.selected {
-          background-image: url("../assets/images/star.svg");
-          background-size: cover;
-        }
-      }
-    }
   }
 
   .song-title {
     font-size: 1.8em;
-    margin: 1em 0 0.5em 0;
+    margin: 2em 0 0.5em 0;
     font-weight: bold;
     text-shadow: 0 0 1em #87d8ff;
   }

@@ -1,13 +1,12 @@
 <template>
   <div class="header-bar">
-    <!-- <div v-if="songName" class="back-button" @click="backPressed">Back</div> -->
+    <div v-if="song" class="back-button" @click="backPressed">Back</div>
     <div class="main-header">
-      <div class="page-title">Song List</div>
-      <!-- <div v-if="!songName" class="page-title">Song List</div> -->
-      <!-- <div v-else class="selected-song">
-        <div class="page-title">{{ songName }}</div>
-        <div class="song-author">{{ songAuthor }}</div>
-      </div> -->
+      <div v-if="!song" class="page-title">Song List</div>
+      <div v-else class="selected-song">
+        <div class="page-title">{{ song.name }}</div>
+        <div v-if="song.author" class="song-author">{{ song.author }}</div>
+      </div>
     </div>
     <div class="controls">
       <div class="midi">
@@ -25,10 +24,16 @@
         />
         <img v-else alt="fullscreen off" src="../assets/images/fullscreen-open.svg" title="Open in full screen" @click="toggleFullScreen()" />
       </div>
-      <!-- <div v-if="isShowKeyboardButton" class="button keyboard">
-        <img v-if="isShowKeyboard" alt="keyboard on" src="../assets/images/show-keyboard.svg" title="Hide virtual keyboard" @click="setKeyboardShown(false)" />
-        <img v-else alt="keyboard off" src="../assets/images/hide-keyboard.svg" title="Show virtual keyboard" @click="setKeyboardShown(true)" />
-      </div> -->
+      <div v-if="isShowKeyboardButton" class="button keyboard">
+        <img
+          v-if="isShowKeyboard"
+          alt="keyboard on"
+          src="../assets/images/keyboard-show.svg"
+          title="Hide virtual keyboard"
+          @click="setKeyboardShown(false)"
+        />
+        <img v-else alt="keyboard off" src="../assets/images/keyboard-hide.svg" title="Show virtual keyboard" @click="setKeyboardShown(true)" />
+      </div>
       <div class="button settings">
         <img src="../assets/images/settings.svg" title="Settings" @click="showSettings" />
       </div>
@@ -38,34 +43,33 @@
 
 <script lang="ts">
 import { computed, defineComponent, ref } from "vue";
-// import { useStore } from "@/store";
-// import { songs } from "@/store/song-module";
-// import { midi } from "@/store/midi-module";
-// import { layout } from "@/store/layout-module";
 import { useRouter } from "vue-router";
+import { useLayoutStore } from "../store/layout-store";
 import { useMidiStore } from "../store/midi-store";
 import { useSettingsStore } from "../store/settings-store";
+import { useSongStore } from "../store/song-store";
 
 export default defineComponent({
   name: "HeaderBar",
 
   setup: function () {
-    // const store = useStore();
     const router = useRouter();
     const midi = useMidiStore();
     const settings = useSettingsStore();
+    const layout = useLayoutStore();
+    const songs = useSongStore();
 
     const isInFullscreen = ref(false);
 
-    // const songName = computed(() => songs(store).selectedSong?.name);
-    // const songAuthor = computed(() => songs(store).selectedSong?.author);
-    // const isShowKeyboardButton = computed(() => layout(store).keyboardButtonShown);
-    // const isShowKeyboard = computed(() => layout(store).keyboardShown);
+    const song = computed(() => songs.selectedSong);
+    const isShowKeyboardButton = computed(() => layout.keyboardButtonShown);
+    const isShowKeyboard = computed(() => layout.keyboardShown);
     const isMidiConnected = computed(() => midi.connected);
 
     const backPressed = () => {
       // store.dispatch("resetPlay");
-      // store.commit("setSelectedSong", null);
+      songs.setSelectedSong(null);
+      layout.setKeyboardButtonShown(false);
       router.push({ name: "SongList" });
     };
 
@@ -80,7 +84,7 @@ export default defineComponent({
     };
 
     const setKeyboardShown = (show: boolean) => {
-      // store.commit("setKeyboardShown", show);
+      layout.setKeyboardShown(show);
     };
 
     const showSettings = async () => {
@@ -93,10 +97,9 @@ export default defineComponent({
 
     return {
       isInFullscreen,
-      // songName,
-      // songAuthor,
-      // isShowKeyboardButton,
-      // isShowKeyboard,
+      song,
+      isShowKeyboardButton,
+      isShowKeyboard,
       isMidiConnected,
       backPressed,
       toggleFullScreen,
@@ -126,6 +129,8 @@ export default defineComponent({
     padding: 0.3em 2em;
     position: relative;
     cursor: pointer;
+    transition: background-color 0.2s;
+    border-radius: 4px;
 
     &:before {
       content: "<";
@@ -135,7 +140,6 @@ export default defineComponent({
 
     &:hover {
       background-color: gray;
-      border-radius: 4px;
     }
   }
 
