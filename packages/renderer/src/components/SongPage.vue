@@ -44,6 +44,7 @@
 </template>
 
 <script lang="ts">
+import { ipcRenderer } from "electron";
 import { defineComponent, onMounted, ref } from "vue";
 // import ContextMenuItemSeparator from "@/components/menu/ContextMenuItemSeparator.vue";
 // import ContextMenuItem from "@/components/menu/ContextMenuItem.vue";
@@ -54,6 +55,7 @@ import { defineComponent, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 // import { useStore } from "@/store";
 import { EngravingRules, IOSMDOptions, OpenSheetMusicDisplay as OSMD } from "opensheetmusicdisplay";
+import { useSongStore } from "../store/song-store";
 
 // interface GroupPosition {
 //   readonly index: number;
@@ -71,6 +73,7 @@ export default defineComponent({
     // const store = useStore();
     const route = useRoute();
     const router = useRouter();
+    const songs = useSongStore();
 
     const showLoading = ref(true);
     const osmdDiv = ref("osmdContainer");
@@ -83,57 +86,60 @@ export default defineComponent({
 
     const groups: { id: number; left: number; top: number; width: number; height: number }[] = [];
     console.log("1");
-    // onMounted(async () => {
-    //   try {
-    // const songId = route.params.songId as string;
-    // await store.dispatch("fetchSong", songId);
-    // const musicXml = await songService.getScore(songId);
-    // const osmd = new OSMD(osmdDiv.value, options);
-    // // osmd.EngravingRules.RenderSingleHorizontalStaffline = true;
-    // await osmd.load(musicXml);
-    // osmd.render();
-    // osmd.enableOrDisableCursors(true);
 
-    // const horizMargin = 5;
-    // osmd.GraphicSheet.VerticalGraphicalStaffEntryContainers.forEach((containerEntry) => {
-    //   let left = Number.MAX_VALUE;
-    //   let top = Number.MAX_VALUE;
-    //   let right = Number.MIN_VALUE;
-    //   let bottom = Number.MIN_VALUE;
-    //   containerEntry.StaffEntries.forEach((staffEntry) => {
-    //     const containsOnlyRests = staffEntry.graphicalVoiceEntries.every((entry) => entry.notes.every((note) => !note.sourceNote.isRest()));
-    //     if (containsOnlyRests) {
-    //       const box = staffEntry.PositionAndShape;
-    //       const measureBox = staffEntry.parentMeasure.ParentMusicSystem.StaffLines[0].PositionAndShape;
-    //       const measureBox1 = staffEntry.parentMeasure.ParentMusicSystem.StaffLines[1].PositionAndShape;
-    //       // const measureBox = staffEntry.parentMeasure.PositionAndShape;
-    //       const entryLeft = (box.AbsolutePosition.x + box.BoundingRectangle.x) * 10 - 3;
-    //       // const entryTop = (box.AbsolutePosition.y + box.BoundingRectangle.y) * 10;
-    //       const entryRight = entryLeft + box.BoundingRectangle.width * 10;
-    //       // const entryBottom = entryTop + box.BoundingRectangle.height * 10;
+    onMounted(async () => {
+      //   try {
+      // const songId = route.params.songId as string;
+      // await store.dispatch("fetchSong", songId);
+      ipcRenderer.send("get-music-xml", songs.selectedSong?.file);
+      ipcRenderer.once("music-xml-loaded", async (_event, ...args) => {
+        showLoading.value = false;
 
-    //       // const entryTop = (measureBox.AbsolutePosition.y + measureBox.BoundingRectangle.y) * 10;
-    //       // const entryBottom = (measureBox1.AbsolutePosition.y + measureBox1.BoundingRectangle.y) * 10 + measureBox1.BoundingRectangle.height * 10;
-    //       const entryTop = staffEntry.parentMeasure.ParentMusicSystem.StaffLines[0].PositionAndShape.AbsolutePosition.y * 10;
-    //       const entryBottom =
-    //         staffEntry.parentMeasure.ParentMusicSystem.StaffLines[1].PositionAndShape.AbsolutePosition.y * 10 + staffEntry.parentMeasure.ParentMusicSystem.StaffLines[1].StaffHeight * 10;
-    //       // const entryBottom = entryTop + 20;
+        const osmd = new OSMD(osmdDiv.value, options);
+        // // // osmd.EngravingRules.RenderSingleHorizontalStaffline = true;
+        await osmd.load(args[0]);
+        osmd.render();
+      });
 
-    //       left = Math.min(left, entryLeft);
-    //       top = Math.min(top, entryTop);
-    //       right = Math.max(right, entryRight);
-    //       bottom = Math.max(bottom, entryBottom);
-    //     }
-    //   });
-    //   groups.push({ id: groups.length, left, top, width: right - left, height: bottom - top });
-    // });
+      // osmd.enableOrDisableCursors(true);
+
+      // const horizMargin = 5;
+      // osmd.GraphicSheet.VerticalGraphicalStaffEntryContainers.forEach((containerEntry) => {
+      //   let left = Number.MAX_VALUE;
+      //   let top = Number.MAX_VALUE;
+      //   let right = Number.MIN_VALUE;
+      //   let bottom = Number.MIN_VALUE;
+      //   containerEntry.StaffEntries.forEach((staffEntry) => {
+      //     const containsOnlyRests = staffEntry.graphicalVoiceEntries.every((entry) => entry.notes.every((note) => !note.sourceNote.isRest()));
+      //     if (containsOnlyRests) {
+      //       const box = staffEntry.PositionAndShape;
+      //       const measureBox = staffEntry.parentMeasure.ParentMusicSystem.StaffLines[0].PositionAndShape;
+      //       const measureBox1 = staffEntry.parentMeasure.ParentMusicSystem.StaffLines[1].PositionAndShape;
+      //       // const measureBox = staffEntry.parentMeasure.PositionAndShape;
+      //       const entryLeft = (box.AbsolutePosition.x + box.BoundingRectangle.x) * 10 - 3;
+      //       // const entryTop = (box.AbsolutePosition.y + box.BoundingRectangle.y) * 10;
+      //       const entryRight = entryLeft + box.BoundingRectangle.width * 10;
+      //       // const entryBottom = entryTop + box.BoundingRectangle.height * 10;
+
+      //       // const entryTop = (measureBox.AbsolutePosition.y + measureBox.BoundingRectangle.y) * 10;
+      //       // const entryBottom = (measureBox1.AbsolutePosition.y + measureBox1.BoundingRectangle.y) * 10 + measureBox1.BoundingRectangle.height * 10;
+      //       const entryTop = staffEntry.parentMeasure.ParentMusicSystem.StaffLines[0].PositionAndShape.AbsolutePosition.y * 10;
+      //       const entryBottom =
+      //         staffEntry.parentMeasure.ParentMusicSystem.StaffLines[1].PositionAndShape.AbsolutePosition.y * 10 + staffEntry.parentMeasure.ParentMusicSystem.StaffLines[1].StaffHeight * 10;
+      //       // const entryBottom = entryTop + 20;
+
+      //       left = Math.min(left, entryLeft);
+      //       top = Math.min(top, entryTop);
+      //       right = Math.max(right, entryRight);
+      //       bottom = Math.max(bottom, entryBottom);
+      //     }
+      //   });
+      //   groups.push({ id: groups.length, left, top, width: right - left, height: bottom - top });
+    });
 
     // const cursor = osmd.cursor;
     // cursor.reset();
     // cursor.show();
-
-    showLoading.value = false;
-    console.log("2");
 
     // const horizMargin = 5;
     // osmd.GraphicSheet.VerticalGraphicalStaffEntryContainers.forEach((containerEntry) => {

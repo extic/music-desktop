@@ -34,5 +34,11 @@ export const utils = {
       });
       event.returnValue = dir?.[0];
     });
+
+    ipcMain.on("get-music-xml", (event, arg) => {
+      const xml = fs.readFileSync(arg).toString();
+
+      win.webContents.send("music-xml-loaded", xml);
+    });
   },
 };
