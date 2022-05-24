@@ -6,32 +6,34 @@
 import { defineComponent } from "vue";
 import { midiService, MidiCallback } from "./services/midi-service";
 import { useMidiStore } from "./store/midi-store";
+import { useSettingsStore } from "./store/settings-store";
 import { useSongStore } from "./store/song-store";
 
 export default defineComponent({
   name: "App",
 
   setup() {
-    const midiStore = useMidiStore();
-    const songStore = useSongStore();
+    const settings = useSettingsStore();
+    const midi = useMidiStore();
+    const songs = useSongStore();
 
     class MidiCallBackImpl implements MidiCallback {
       setConnected(connected: boolean): void {
-        midiStore.setConnected(connected);
+        midi.setConnected(connected);
       }
 
       keyOn(key: number, velocity: number) {
-        midiStore.setUserVelocity(velocity);
-        midiStore.keyOn(key, velocity);
+        midi.setUserVelocity(velocity);
+        midi.keyOn(key, velocity);
       }
 
       keyOff(key: number) {
-        midiStore.keyOff(key);
+        midi.keyOff(key);
       }
     }
 
     midiService.init(new MidiCallBackImpl());
-    songStore.loadSongs();
+    songs.loadSongs();
   },
 });
 </script>

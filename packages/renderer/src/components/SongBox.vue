@@ -3,13 +3,7 @@
     <div class="song-box">
       <div class="song-title">{{ song.name }}</div>
       <div class="song-author">{{ song.author }}</div>
-      <div v-if="song.incomplete" class="incomplete" title="Incomplete score (Work in progress...)"></div>
-      <div
-        class="favorite"
-        :class="{ selected: isFavorite(song) }"
-        title="Mark as favorite"
-        @click.stop="markFavorite(song)"
-      ></div>
+      <div class="favorite" :class="{ selected: isFavorite(song) }" title="Mark as favorite" @click.stop="markFavorite(song)"></div>
     </div>
   </div>
 </template>
@@ -31,19 +25,18 @@ export default defineComponent({
 
   setup() {
     const router = useRouter();
-    // const store = useStore();
+    const songs = useSongStore();
 
     const playSong = (song: Song) => {
       // router.push({ name: "Song", params: { songId: song.uuid } });
     };
 
-    const isFavorite = (song: Song) => {
-      return true;
-      // return songs(store).favoriteSongs.find((it) => it === song.uuid) != null;
+    const isFavorite = (song: Song): boolean => {
+      return song.favorite;
     };
 
     const markFavorite = (song: Song) => {
-      // store.dispatch("toggleSongFavorite", song.uuid);
+      songs.setFavorite(song.id, !song.favorite);
     };
 
     return { playSong, isFavorite, markFavorite };
@@ -77,43 +70,41 @@ export default defineComponent({
 
   .song-box {
     padding: 1em;
+    position: relative;
+
+    .favorite {
+      position: absolute;
+      top: 0.8em;
+      left: 0.8em;
+      width: 1.5em;
+      height: 1.5em;
+      transition: all 0.2s ease-in-out;
+      display: block;
+
+      &.selected {
+        background-image: url("../assets/images/star.svg");
+        background-size: cover;
+      }
+    }
+
+    &:hover {
+      .favorite {
+        position: absolute;
+        top: 0.8em;
+        left: 0.8em;
+        width: 1.5em;
+        height: 1.5em;
+        transition: all 0.2s ease-in-out;
+        background-image: url("../assets/images/star-empty.svg");
+        background-size: cover;
+
+        &.selected {
+          background-image: url("../assets/images/star.svg");
+          background-size: cover;
+        }
+      }
+    }
   }
-
-  // .favorite {
-  //   position: absolute;
-  //   top: 0.8em;
-  //   left: 0.8em;
-  //   width: 1.5em;
-  //   height: 1.5em;
-  //   transition: all 0.2s ease-in-out;
-  //   display: block;
-
-  //   &.selected {
-  //     background-image: url("../assets/images/star.svg");
-  //     background-size: cover;
-  //   }
-  // }
-
-  // &:hover {
-  //   background-color: #69ccef;
-  //   transform: scale(1.03);
-
-  //   .favorite {
-  //     position: absolute;
-  //     top: 0.8em;
-  //     left: 0.8em;
-  //     width: 1.5em;
-  //     height: 1.5em;
-  //     transition: all 0.2s ease-in-out;
-  //     background-image: url("../assets/images/star-empty.svg");
-  //     background-size: cover;
-
-  //     &.selected {
-  //       background-image: url("../assets/images/star.svg");
-  //       background-size: cover;
-  //     }
-  //   }
-  // }
 
   .song-title {
     font-size: 1.8em;
@@ -124,16 +115,6 @@ export default defineComponent({
 
   .song-author {
     font-size: 1.3em;
-  }
-
-  .incomplete {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 2em;
-    height: 2em;
-    background-color: #69ccef95;
-    border-radius: 0 0 0 100%;
   }
 }
 </style>

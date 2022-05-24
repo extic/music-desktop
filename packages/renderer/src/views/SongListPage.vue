@@ -1,6 +1,14 @@
 <template>
   <div class="song-list-page">
     <div class="filter-container">
+      <button class="filter-button" :class="{ selected: showAllSongs }" @click="showAllSongs = true">
+        <img src="../assets/images/all.svg" />
+        <span>All Songs</span>
+      </button>
+      <button class="filter-button" :class="{ selected: !showAllSongs }" @click="showAllSongs = false">
+        <img src="../assets/images/star.svg" />
+        <span>Favorite Songs</span>
+      </button>
       <label for="filter">Filter:</label>
       <div class="filter-input-container">
         <input id="filter" v-model="filter" />
@@ -9,7 +17,7 @@
     </div>
     <section class="song-list-container">
       <transition-group class="song-list" name="list" tag="div">
-        <song-box :song="song" v-for="song in filteredSongList" :key="song.uuid" @click="selectSong(song)" />
+        <song-box :song="song" v-for="song in filteredSongList" :key="song.name" @click="selectSong(song)" />
       </transition-group>
       <div v-if="filteredSongList.length === 0" class="no-match">No song matches your filter</div>
     </section>
@@ -31,15 +39,16 @@ export default defineComponent({
 
     const filter = ref("");
     const songs = ref([] as Song[]);
+    const showAllSongs = ref(true);
 
     const filteredSongList = computed(() => {
-      return songs.value
-        .filter(
-          (it) =>
-            filter.value === "" ||
-            it.name.toLowerCase().includes(filter.value) ||
-            it.author.toLowerCase().includes(filter.value)
-        )
+      let filteredSongs = songs.value;
+      if (!showAllSongs.value) {
+        filteredSongs = filteredSongs.filter((it) => it.favorite);
+      }
+
+      return filteredSongs
+        .filter((it) => filter.value === "" || it.name.toLowerCase().includes(filter.value) || it.author.toLowerCase().includes(filter.value))
         .sort((s1: Song, s2: Song) => s1.name.localeCompare(s2.name));
     });
 
@@ -53,18 +62,17 @@ export default defineComponent({
       // store.dispatch("fetchSongList");
     });
 
-    return { filter, selectSong, filteredSongList, songs };
+    return { showAllSongs, filter, selectSong, filteredSongList, songs };
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@import "../styles/variables";
+@import "../styles/variables.scss";
 
 .song-list-page {
   display: flex;
   flex-direction: column;
-  //gap: 2em;
   height: calc(100% - #{$header-height});
   overflow: hidden;
 
@@ -74,6 +82,31 @@ export default defineComponent({
     gap: 1em;
     padding: 2em 3em 2em 3em;
     border-bottom: 1px solid lightgray;
+
+    .filter-button {
+      @include pressable;
+      border: 1px solid gray;
+      border-radius: 4px;
+      display: flex;
+      flex-direction: row;
+      padding: 0.4em 1em;
+      gap: 0.5em;
+      background-color: white;
+      cursor: pointer;
+      transition: background-color 0.2s;
+
+      &.selected {
+        background-color: #69ccef;
+      }
+
+      img {
+        width: 1em;
+      }
+
+      span {
+        white-space: nowrap;
+      }
+    }
 
     label {
       font-size: 1.2em;
@@ -97,6 +130,7 @@ export default defineComponent({
       }
 
       button {
+        @include pressable;
         flex-shrink: 0;
         width: 2em;
         height: 2em;
@@ -108,13 +142,7 @@ export default defineComponent({
         background-position: 50%;
         margin-right: 0.5em;
         outline: none;
-        transform: scale(1);
-        transition: transform 0.2s;
         cursor: pointer;
-
-        &:hover {
-          transform: scale(1.3);
-        }
       }
     }
   }

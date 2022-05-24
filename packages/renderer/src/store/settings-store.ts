@@ -4,10 +4,8 @@ import { storage } from "../utils/local_storage";
 
 const homePath = ipcRenderer.sendSync("get-home-path");
 const initialDataFilesPath = storage.getString("data-files-path", `${homePath}/.music`);
-
-console.log("initialDataFilesPath", initialDataFilesPath);
-
 ipcRenderer.sendSync("create-folder", initialDataFilesPath);
+console.debug("initialDataFilesPath", initialDataFilesPath);
 
 export const useSettingsStore = defineStore("settings", {
   state: () => ({

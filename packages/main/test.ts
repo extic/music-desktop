@@ -1,6 +1,6 @@
 import { ipcMain, dialog, BrowserWindow, app } from "electron";
-import { SongSerializer } from "./songs/song-serializer";
 import * as fs from "fs";
+import { songDb } from "./songs/song-db";
 
 export const utils = {
   aaa: (win: BrowserWindow) => {
@@ -12,7 +12,11 @@ export const utils = {
     });
 
     ipcMain.on("load-songs", (event, arg) => {
-      event.returnValue = SongSerializer.load();
+      event.returnValue = songDb.load(arg);
+    });
+
+    ipcMain.on("save-songs", (event, path: string, songs: any) => {
+      event.returnValue = songDb.save(path, JSON.parse(songs));
     });
 
     ipcMain.on("get-home-path", (event, arg) => {

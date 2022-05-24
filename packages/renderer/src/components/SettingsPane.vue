@@ -52,12 +52,15 @@ import { ipcRenderer } from "electron";
 import { defineComponent, ref, watch } from "vue";
 import { AvailableMidiInstruments, MidiDeviceDescriptor, MidiInstrument, midiService } from "../services/midi-service";
 import { useSettingsStore } from "../store/settings-store";
+import { useSongStore } from "../store/song-store";
+import SongListPageVue from "../views/SongListPage.vue";
 
 export default defineComponent({
   name: "SettingsPane",
 
   setup: function () {
     const settings = useSettingsStore();
+    const songs = useSongStore();
 
     const dataFilesPath = ref(settings.dataFilesPath);
     const midiInputDevice = ref(midiService.selectedInputDescriptor());
@@ -89,6 +92,7 @@ export default defineComponent({
       if (path) {
         dataFilesPath.value = path;
         settings.setDataFilesPath(path);
+        songs.loadSongs();
       }
     };
 
