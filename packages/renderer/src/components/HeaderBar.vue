@@ -34,8 +34,8 @@
         />
         <img v-else alt="keyboard off" src="../assets/images/keyboard-hide.svg" title="Show virtual keyboard" @click="setKeyboardShown(true)" />
       </div>
-      <div class="button settings">
-        <img src="../assets/images/settings.svg" title="Settings" @click="showSettings" />
+      <div class="button settings" @click="showSettings">
+        <img src="../assets/images/settings.svg" title="Settings" />
       </div>
     </div>
   </div>

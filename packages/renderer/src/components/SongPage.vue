@@ -5,7 +5,7 @@
         <img src="../assets/images/loading.gif" />
       </div>
       <div style="position: relative">
-        <div id="osmdContainer"></div>
+        <div id="osmdContainer" ref="osmdContainer"></div>
         <div
           v-for="group in groups"
           :key="group.id"
@@ -56,6 +56,9 @@ import { useRoute, useRouter } from "vue-router";
 // import { useStore } from "@/store";
 import { EngravingRules, IOSMDOptions, OpenSheetMusicDisplay as OSMD } from "opensheetmusicdisplay";
 import { useSongStore } from "../store/song-store";
+import { Vue } from "pinia/node_modules/vue-demi";
+import { TIMEOUT } from "dns";
+import { SongParser, VerticalGroup } from "../utils/SongParser";
 
 // interface GroupPosition {
 //   readonly index: number;
@@ -71,76 +74,23 @@ export default defineComponent({
 
   setup() {
     // const store = useStore();
-    const route = useRoute();
-    const router = useRouter();
-    const songs = useSongStore();
-
-    const showLoading = ref(true);
-    const osmdDiv = ref("osmdContainer");
-
-    const options: IOSMDOptions = {
-      backend: "svg",
-      drawTitle: true,
-      // drawingParameters: "compacttight" // don't display title, composer etc., smaller margins
-    };
-
-    const groups: { id: number; left: number; top: number; width: number; height: number }[] = [];
-    console.log("1");
-
-    onMounted(async () => {
-      //   try {
-      // const songId = route.params.songId as string;
-      // await store.dispatch("fetchSong", songId);
-      ipcRenderer.send("get-music-xml", songs.selectedSong?.file);
-      ipcRenderer.once("music-xml-loaded", async (_event, ...args) => {
-        showLoading.value = false;
-
-        const osmd = new OSMD(osmdDiv.value, options);
-        // // // osmd.EngravingRules.RenderSingleHorizontalStaffline = true;
-        await osmd.load(args[0]);
-        osmd.render();
-      });
-
-      // osmd.enableOrDisableCursors(true);
-
-      // const horizMargin = 5;
-      // osmd.GraphicSheet.VerticalGraphicalStaffEntryContainers.forEach((containerEntry) => {
-      //   let left = Number.MAX_VALUE;
-      //   let top = Number.MAX_VALUE;
-      //   let right = Number.MIN_VALUE;
-      //   let bottom = Number.MIN_VALUE;
-      //   containerEntry.StaffEntries.forEach((staffEntry) => {
-      //     const containsOnlyRests = staffEntry.graphicalVoiceEntries.every((entry) => entry.notes.every((note) => !note.sourceNote.isRest()));
-      //     if (containsOnlyRests) {
-      //       const box = staffEntry.PositionAndShape;
-      //       const measureBox = staffEntry.parentMeasure.ParentMusicSystem.StaffLines[0].PositionAndShape;
-      //       const measureBox1 = staffEntry.parentMeasure.ParentMusicSystem.StaffLines[1].PositionAndShape;
-      //       // const measureBox = staffEntry.parentMeasure.PositionAndShape;
-      //       const entryLeft = (box.AbsolutePosition.x + box.BoundingRectangle.x) * 10 - 3;
-      //       // const entryTop = (box.AbsolutePosition.y + box.BoundingRectangle.y) * 10;
-      //       const entryRight = entryLeft + box.BoundingRectangle.width * 10;
-      //       // const entryBottom = entryTop + box.BoundingRectangle.height * 10;
-
-      //       // const entryTop = (measureBox.AbsolutePosition.y + measureBox.BoundingRectangle.y) * 10;
-      //       // const entryBottom = (measureBox1.AbsolutePosition.y + measureBox1.BoundingRectangle.y) * 10 + measureBox1.BoundingRectangle.height * 10;
-      //       const entryTop = staffEntry.parentMeasure.ParentMusicSystem.StaffLines[0].PositionAndShape.AbsolutePosition.y * 10;
-      //       const entryBottom =
-      //         staffEntry.parentMeasure.ParentMusicSystem.StaffLines[1].PositionAndShape.AbsolutePosition.y * 10 + staffEntry.parentMeasure.ParentMusicSystem.StaffLines[1].StaffHeight * 10;
-      //       // const entryBottom = entryTop + 20;
-
-      //       left = Math.min(left, entryLeft);
-      //       top = Math.min(top, entryTop);
-      //       right = Math.max(right, entryRight);
-      //       bottom = Math.max(bottom, entryBottom);
-      //     }
-      //   });
-      //   groups.push({ id: groups.length, left, top, width: right - left, height: bottom - top });
-    });
-
+    // const route = useRoute();
+    // const router = useRouter();
+    // const songs = useSongStore();
+    // const key = ref("1");
+    // const showLoading = ref(true);
+    // const osmdDiv = ref("osmdContainer");
+    // const options: IOSMDOptions = {
+    //   backend: "svg",
+    //   drawTitle: true,
+    //   // drawingParameters: "compacttight" // don't display title, composer etc., smaller margins
+    // };
+    // const groups: { id: number; left: number; top: number; width: number; height: number }[] = [];
+    // onMounted(async () => {
+    // });
     // const cursor = osmd.cursor;
     // cursor.reset();
     // cursor.show();
-
     // const horizMargin = 5;
     // osmd.GraphicSheet.VerticalGraphicalStaffEntryContainers.forEach((containerEntry) => {
     //   console.log(`Entry: ${containerEntry.Index}, time=${containerEntry.AbsoluteTimestamp.RealValue}`);
@@ -153,7 +103,6 @@ export default defineComponent({
     //       const top = (box.AbsolutePosition.y + box.BoundingRectangle.y) * 10;
     //       const width = box.BoundingRectangle.width * 10 + horizMargin * 2;
     //       const height = box.BoundingRectangle.height * 10;
-
     //       groups.push({ left, top, width, height });
     //       voiceEntry.notes.forEach((note) => {
     //         const sourceNote = note.sourceNote;
@@ -166,11 +115,110 @@ export default defineComponent({
     //   await router.push("/song-list");
     // }
     //});
-
-    return { showLoading, groups };
+    // return { showLoading, groups };
   },
 
-  // mounted() {
+  data() {
+    return {
+      showLoading: false,
+      groups: [] as VerticalGroup[],
+    };
+  },
+
+  mounted() {
+    const options: IOSMDOptions = {
+      backend: "svg",
+      drawTitle: true,
+      // drawingParameters: "compacttight" // don't display title, composer etc., smaller margins
+    };
+
+    const parseSong = (osmd: OSMD) => {
+      const songData = SongParser.calc(osmd);
+      console.log(songData);
+      this.groups = songData.verticalGroups;
+    };
+
+    // const calcGroups = (osmd: OSMD) => {
+    //   osmd.GraphicSheet.VerticalGraphicalStaffEntryContainers.forEach((containerEntry) => {
+    //     let left = Number.MAX_VALUE;
+    //     let top = Number.MAX_VALUE;
+    //     let right = Number.MIN_VALUE;
+    //     let bottom = Number.MIN_VALUE;
+    //     containerEntry.StaffEntries.forEach((staffEntry) => {
+    //       // const containsOnlyRests = staffEntry.graphicalVoiceEntries.every((entry) => entry.notes.every((note) => !note.sourceNote.isRest()));
+    //       // if (containsOnlyRests) {
+    //       const box = staffEntry.PositionAndShape;
+    //       console.log(box);
+    //       console.log(box.BoundingRectangle);
+    //       // const measureBox = staffEntry.parentMeasure.ParentMusicSystem.StaffLines[0].PositionAndShape;
+    //       // const measureBox1 = staffEntry.parentMeasure.ParentMusicSystem.StaffLines[1].PositionAndShape;
+    //       // const measureBox = staffEntry.parentMeasure.PositionAndShape;
+    //       const entryLeft = (box.AbsolutePosition.x + box.BoundingRectangle.x) * 10 - 3;
+    //       // const entryTop = (box.AbsolutePosition.y + box.BoundingRectangle.y) * 10;
+    //       const entryRight = entryLeft + box.BoundingRectangle.width * 10;
+    //       // const entryBottom = entryTop + box.BoundingRectangle.height * 10;
+
+    //       // const entryTop = (measureBox.AbsolutePosition.y + measureBox.BoundingRectangle.y) * 10;
+    //       // const entryBottom = (measureBox1.AbsolutePosition.y + measureBox1.BoundingRectangle.y) * 10 + measureBox1.BoundingRectangle.height * 10;
+    //       const entryTop = staffEntry.parentMeasure.ParentMusicSystem.StaffLines[0].PositionAndShape.AbsolutePosition.y * 10;
+    //       const entryBottom =
+    //         staffEntry.parentMeasure.ParentMusicSystem.StaffLines[1].PositionAndShape.AbsolutePosition.y * 10 +
+    //         staffEntry.parentMeasure.ParentMusicSystem.StaffLines[1].StaffHeight * 10;
+    //       // const entryBottom = entryTop + 20;
+
+    //       left = Math.min(left, entryLeft);
+    //       top = Math.min(top, entryTop);
+    //       right = Math.max(right, entryRight);
+    //       bottom = Math.max(bottom, entryBottom);
+    //       // }
+    //     });
+    //     this.groups.push({ id: this.groups.length, left, top, width: right - left, height: bottom - top });
+    //   });
+
+    //   console.log(this.groups);
+    // };
+
+    const songs = useSongStore();
+    const osmdDiv = this.$refs.osmdContainer as HTMLDivElement;
+    // const key = ref("1");
+    // const showLoading = ref(true);
+    // const osmdDiv = ref("osmdContainer");
+
+    //   try {
+    // const songId = route.params.songId as string;
+    // await store.dispatch("fetchSong", songId);
+    ipcRenderer.send("get-music-xml", songs.selectedSong?.file);
+    ipcRenderer.once("music-xml-loaded", async (_event, ...args) => {
+      this.showLoading = false;
+
+      class A extends OSMD {
+        protected handleResize(startCallback: () => void, endCallback: () => void): void {
+          super.handleResize(
+            () => {
+              startCallback();
+            },
+            () => {
+              endCallback();
+              parseSong(this);
+            }
+          );
+        }
+      }
+
+      const osmd = new A(osmdDiv, options);
+
+      // // // osmd.EngravingRules.RenderSingleHorizontalStaffline = true;
+      await osmd.load(args[0]);
+      // osmd.AutoResizeEnabled = false;
+
+      // setTimeout(() => {
+      // const horizMargin = 5;
+
+      // }, 2000);
+
+      // osmd.enableOrDisableCursors(true);
+    });
+  },
   //   const router = useRouter();
 
   //   route.params currentRoute.value.params
@@ -500,6 +548,11 @@ export default defineComponent({
   .group {
     position: absolute;
     background-color: #ff000045;
+
+    &:hover {
+      background-color: rgba(132, 151, 255, 0.5);
+      border: 1px solid red;
+    }
   }
 }
 </style>
