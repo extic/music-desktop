@@ -14,24 +14,24 @@
           </option>
         </select>
       </div>
-    </div>
-    <div class="group">
-      <div class="group-label">Practice</div>
-      <div v-if="(selectedInstrument?.staffIndexes?.length ?? 1) > 1">
-        <div class="practice-buttons">
-          <button :class="{ selected: practiceLeftHand }" class="hand-button left-hand" @click="practiceLeftHand = !practiceLeftHand">
-            <img alt="left hand" src="../assets/images/hand-left.svg" />
-            <span>Left Hand</span>
-          </button>
-          <button :class="{ selected: practiceRightHand }" class="hand-button right-hand" @click="practiceRightHand = !practiceRightHand">
-            <img alt="right hand" src="../assets/images/hand-right.svg" />
-            <span>Right Hand</span>
-          </button>
+      <div class="group">
+        <div class="group-label">Practice</div>
+        <div v-if="(selectedInstrument?.staffIndexes?.length ?? 1) > 1">
+          <div class="practice-buttons">
+            <button :class="{ selected: practiceLeftHand }" class="hand-button left-hand" @click="practiceLeftHand = !practiceLeftHand">
+              <img alt="left hand" src="../assets/images/hand-left.svg" />
+              <span>Left Hand</span>
+            </button>
+            <button :class="{ selected: practiceRightHand }" class="hand-button right-hand" @click="practiceRightHand = !practiceRightHand">
+              <img alt="right hand" src="../assets/images/hand-right.svg" />
+              <span>Right Hand</span>
+            </button>
+          </div>
         </div>
-      </div>
-      <div @click="autoAccompany = !autoAccompany" class="checkbox">
-        <input :checked="autoAccompany" type="checkbox" />
-        <label>Accompany with other hand / instruments</label>
+        <div @click="autoAccompany = !autoAccompany" class="checkbox">
+          <input :checked="autoAccompany" type="checkbox" />
+          <label>Accompany with other hand / instruments</label>
+        </div>
       </div>
     </div>
     <!--
@@ -270,6 +270,9 @@ export default defineComponent({
 
   .group-container {
     z-index: -20;
+    display: flex;
+    flex-direction: column;
+    row-gap: 2em;
   }
 
   .group {

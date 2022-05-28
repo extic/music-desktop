@@ -168,6 +168,7 @@ export default defineComponent({
       width: 1.5em;
       height: 1.5em;
       padding: 0.5em;
+      box-sizing: content-box;
       cursor: pointer;
 
       &:hover {
