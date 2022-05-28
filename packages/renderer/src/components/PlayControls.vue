@@ -1,23 +1,40 @@
 <template>
   <div class="play-controls">
     <div class="group">
-      <div class="group-label">Practice Hands</div>
-      <div class="practice-buttons">
-        <button :class="{ selected: isPracticeLeftHand }" class="hand-button left-hand" @click="togglePracticeLeftHand()">
-          <img alt="left hand" src="../assets/images/hand-left.svg" />
-          <span>Left Hand</span>
-        </button>
-        <button :class="{ selected: isPracticeRightHand }" class="hand-button right-hand" @click="togglePracticeRightHand()">
-          <img alt="right hand" src="../assets/images/hand-right.svg" />
-          <span>Right Hand</span>
-        </button>
-      </div>
-      <div @click="toggleAccompanyWithOtherHand">
-        <input :checked="isAccompanyWithOtherHand" :disabled="isPracticeRightHand && isPracticeLeftHand" type="checkbox" />
-        <label :class="{ disabled: isPracticeRightHand && isPracticeLeftHand }">Accompany with other hand</label>
+      <div class="group-label">Who is playing?</div>
+      <PlayerSelection />
+    </div>
+    <div v-if="player === 'computer'">computer</div>
+    <div v-else class="group-container">
+      <div class="group">
+        <div class="group-label">Choose Instrument</div>
+        <select v-model="selectedInstrument">
+          <option v-for="instrument in instruments" :value="instrument">
+            {{ instrument.name }}
+          </option>
+        </select>
       </div>
     </div>
-
+    <div class="group">
+      <div class="group-label">Practice</div>
+      <div v-if="(selectedInstrument?.staffIndexes?.length ?? 1) > 1">
+        <div class="practice-buttons">
+          <button :class="{ selected: practiceLeftHand }" class="hand-button left-hand" @click="practiceLeftHand = !practiceLeftHand">
+            <img alt="left hand" src="../assets/images/hand-left.svg" />
+            <span>Left Hand</span>
+          </button>
+          <button :class="{ selected: practiceRightHand }" class="hand-button right-hand" @click="practiceRightHand = !practiceRightHand">
+            <img alt="right hand" src="../assets/images/hand-right.svg" />
+            <span>Right Hand</span>
+          </button>
+        </div>
+      </div>
+      <div @click="autoAccompany = !autoAccompany" class="checkbox">
+        <input :checked="autoAccompany" type="checkbox" />
+        <label>Accompany with other hand / instruments</label>
+      </div>
+    </div>
+    <!--
     <div class="group">
       <div class="group-label">Controls</div>
       <button class="button" @click="play()">Start</button>
@@ -59,127 +76,186 @@
         </div>
         <input v-model="playSpeed" max="100" min="0" type="range" />
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-// import { player } from "@/store/player-module";
+import { defineComponent, computed } from "vue";
+import PlayerSelection from "../components/PlayerSelection.vue";
+import { usePlayerStore, PlayerType } from "../store/player-store";
+import { Instrument } from "../utils/SongParser";
 // import { midi } from "@/store/midi-module";
 // import { midiService } from "@/services/midi-service";
 
 export default defineComponent({
   name: "PlayControls",
 
-  methods: {
-    play() {
-      // this.$store.commit("setAutoPlay", true);
-      // this.$store.dispatch("triggerKeys", []);
-    },
+  components: { PlayerSelection },
 
-    stop() {
-      // this.$store.commit("setAutoPlay", false);
-      // midiService.resetDevice();
-    },
+  setup() {
+    const playerStore = usePlayerStore();
 
-    reset() {
-      // let startBlock = player(this.$store).startBlock;
-      // if (startBlock !== -1) {
-      //   this.$store.dispatch("resetPlay", startBlock);
-      // } else {
-      //   this.$store.dispatch("resetPlay", 0);
-      // }
-    },
+    const player = computed(() => {
+      return playerStore.player;
+    });
 
-    toggleAccompanyWithOtherHand() {
-      if (this.isPracticeRightHand && this.isPracticeLeftHand) {
-        return;
-      }
-      // this.$store.commit("setAccompanyWithOtherHand", !player(this.$store).accompanyWithOtherHand);
-    },
+    const instruments = computed(() => {
+      return playerStore.instruments;
+    });
 
-    togglePracticeRightHand() {
-      // this.$store.commit("setPracticeRightHand", !player(this.$store).practiceRightHand);
-    },
-
-    togglePracticeLeftHand() {
-      // this.$store.commit("setPracticeLeftHand", !player(this.$store).practiceLeftHand);
-    },
-
-    togglePlayHighPitchWhenCorrect() {
-      // this.$store.commit("setPlayHighPitchWhenCorrect", !player(this.$store).playHighPitchWhenCorrect);
-    },
-
-    toggleUseUserVelocityForAccompanying() {
-      // this.$store.commit("setUseUserVelocityForAccompanying", !midi(this.$store).useUserVelocityForAccompanying);
-    },
-  },
-
-  computed: {
-    isAccompanyWithOtherHand(): boolean {
-      // return player(this.$store).accompanyWithOtherHand;
-      return false;
-    },
-
-    isPracticeRightHand(): boolean {
-      // return player(this.$store).practiceRightHand;
-      return false;
-    },
-
-    isPracticeLeftHand(): boolean {
-      // return player(this.$store).practiceLeftHand;
-      return false;
-    },
-
-    isPlayHighPitchWhenCorrect(): boolean {
-      // return player(this.$store).playHighPitchWhenCorrect;
-      return false;
-    },
-
-    correctNoteVolume: {
-      get(): number {
-        // return midi(this.$store).correctToneVelocity;
-        return 0;
+    const selectedInstrument = computed({
+      get(): Instrument | null {
+        return playerStore.selectedInstrument;
       },
-
-      set(velocity: number) {
-        // this.$store.commit("setCorrectToneVelocity", velocity);
+      set(newValue: Instrument | null): void {
+        playerStore.setSelectedInstrument(newValue);
       },
-    },
+    });
 
-    useUserVelocityForAccompanying: {
+    const practiceLeftHand = computed({
       get(): boolean {
-        //return midi(this.$store).useUserVelocityForAccompanying;
-        return false;
+        return playerStore.practiceLeftHand;
       },
-      set(newValue: boolean) {
-        // this.$store.commit("setUseUserVelocityForAccompanying", newValue);
+      set(newValue: boolean): void {
+        if (newValue || playerStore.practiceRightHand) {
+          playerStore.setPracticeLeftHand(newValue);
+        }
       },
-    },
+    });
 
-    accompanyVelocity: {
-      get(): number {
-        // return midi(this.$store).accompanyVelocity;
-        return 0;
+    const practiceRightHand = computed({
+      get(): boolean {
+        return playerStore.practiceRightHand;
       },
+      set(newValue: boolean): void {
+        if (newValue || playerStore.practiceLeftHand) {
+          playerStore.setPracticeRightHand(newValue);
+        }
+      },
+    });
 
-      set(velocity: number) {
-        // this.$store.commit("setAccompanyVelocity", velocity);
+    const autoAccompany = computed({
+      get(): boolean {
+        return playerStore.autoAccompany;
       },
-    },
+      set(newValue: boolean): void {
+        playerStore.setAutoAccompany(newValue);
+      },
+    });
 
-    playSpeed: {
-      get(): number {
-        // return -((-0.025 + Math.sqrt(0.025 * 0.025 - 4 * 0.0001 * (2 - player(this.$store).playSpeed))) / (2 * 0.0001));
-        return 0;
-      },
+    // const player = ref("computer");
 
-      set(speed: number) {
-        // this.$store.commit("setPlaySpeed", 0.0001 * speed * speed + -0.025 * speed + 2);
-      },
-    },
+    // const setPlayer = (value: string) => {
+    //   player.value = value;
+    // };
+
+    // const togglePlayer = () => {
+    //   player.value = player.value === "human" ? "computer" : "human";
+    // };
+
+    return { player, instruments, selectedInstrument, practiceLeftHand, practiceRightHand, autoAccompany };
   },
+
+  // methods: {
+  //   play() {
+  //     // this.$store.commit("setAutoPlay", true);
+  //     // this.$store.dispatch("triggerKeys", []);
+  //   },
+
+  //   stop() {
+  //     // this.$store.commit("setAutoPlay", false);
+  //     // midiService.resetDevice();
+  //   },
+
+  //   reset() {
+  //     // let startBlock = player(this.$store).startBlock;
+  //     // if (startBlock !== -1) {
+  //     //   this.$store.dispatch("resetPlay", startBlock);
+  //     // } else {
+  //     //   this.$store.dispatch("resetPlay", 0);
+  //     // }
+  //   },
+  // toggleAccompanyWithOtherHand() {
+  //   if (this.isPracticeRightHand && this.isPracticeLeftHand) {
+  //     return;
+  //   }
+  //   // this.$store.commit("setAccompanyWithOtherHand", !player(this.$store).accompanyWithOtherHand);
+  // },
+
+  //   togglePlayHighPitchWhenCorrect() {
+  //     // this.$store.commit("setPlayHighPitchWhenCorrect", !player(this.$store).playHighPitchWhenCorrect);
+  //   },
+
+  //   toggleUseUserVelocityForAccompanying() {
+  //     // this.$store.commit("setUseUserVelocityForAccompanying", !midi(this.$store).useUserVelocityForAccompanying);
+  //   },
+  // },
+
+  // computed: {
+  //   isAccompanyWithOtherHand(): boolean {
+  //     // return player(this.$store).accompanyWithOtherHand;
+  //     return false;
+  //   },
+
+  //   isPracticeRightHand(): boolean {
+  //     // return player(this.$store).practiceRightHand;
+  //     return false;
+  //   },
+
+  //   isPracticeLeftHand(): boolean {
+  //     // return player(this.$store).practiceLeftHand;
+  //     return false;
+  //   },
+
+  //   isPlayHighPitchWhenCorrect(): boolean {
+  //     // return player(this.$store).playHighPitchWhenCorrect;
+  //     return false;
+  //   },
+
+  //   correctNoteVolume: {
+  //     get(): number {
+  //       // return midi(this.$store).correctToneVelocity;
+  //       return 0;
+  //     },
+
+  //     set(velocity: number) {
+  //       // this.$store.commit("setCorrectToneVelocity", velocity);
+  //     },
+  //   },
+
+  //   useUserVelocityForAccompanying: {
+  //     get(): boolean {
+  //       //return midi(this.$store).useUserVelocityForAccompanying;
+  //       return false;
+  //     },
+  //     set(newValue: boolean) {
+  //       // this.$store.commit("setUseUserVelocityForAccompanying", newValue);
+  //     },
+  //   },
+
+  //   accompanyVelocity: {
+  //     get(): number {
+  //       // return midi(this.$store).accompanyVelocity;
+  //       return 0;
+  //     },
+
+  //     set(velocity: number) {
+  //       // this.$store.commit("setAccompanyVelocity", velocity);
+  //     },
+  //   },
+
+  //   playSpeed: {
+  //     get(): number {
+  //       // return -((-0.025 + Math.sqrt(0.025 * 0.025 - 4 * 0.0001 * (2 - player(this.$store).playSpeed))) / (2 * 0.0001));
+  //       return 0;
+  //     },
+
+  //     set(speed: number) {
+  //       // this.$store.commit("setPlaySpeed", 0.0001 * speed * speed + -0.025 * speed + 2);
+  //     },
+  //   },
+  // },
 });
 </script>
 
@@ -191,6 +267,10 @@ export default defineComponent({
   row-gap: 2em;
   padding-top: 0.5em;
   padding-right: 0.5em;
+
+  .group-container {
+    z-index: -20;
+  }
 
   .group {
     border: 1px solid lightgray;
@@ -231,6 +311,12 @@ export default defineComponent({
       align-self: center;
       border: 0;
       border-top: 1px solid lightgray;
+    }
+
+    select {
+      padding: 0.3em 1em;
+      border-radius: 4px;
+      border: 1px solid lightgray;
     }
   }
 
@@ -280,18 +366,34 @@ export default defineComponent({
     }
   }
 
-  input[type="range"] {
-    width: 100%;
-  }
-
-  .play-speed-labels {
+  .checkbox {
     display: flex;
-    justify-content: space-between;
+    align-items: center;
+    gap: 0.5em;
+    cursor: pointer;
+
+    input {
+      cursor: pointer;
+    }
+
+    label {
+      font-size: 0.9em;
+      cursor: pointer;
+    }
   }
 
-  .disabled {
-    text-decoration: line-through;
-    color: lightgray;
-  }
+  // input[type="range"] {
+  //   width: 100%;
+  // }
+
+  // .play-speed-labels {
+  //   display: flex;
+  //   justify-content: space-between;
+  // }
+
+  // .disabled {
+  //   text-decoration: line-through;
+  //   color: lightgray;
+  // }
 }
 </style>

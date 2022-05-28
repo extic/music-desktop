@@ -19,7 +19,7 @@ export type VerticalGroup = {
   height: number;
 };
 
-export type BoundingBox = {
+type BoundingBox = {
   left: number;
   top: number;
   right: number;

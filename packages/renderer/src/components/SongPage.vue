@@ -59,6 +59,7 @@ import { useSongStore } from "../store/song-store";
 import { Vue } from "pinia/node_modules/vue-demi";
 import { TIMEOUT } from "dns";
 import { SongParser, VerticalGroup } from "../utils/SongParser";
+import { usePlayerStore } from "../store/player-store";
 
 // interface GroupPosition {
 //   readonly index: number;
@@ -136,6 +137,10 @@ export default defineComponent({
       const songData = SongParser.calc(osmd);
       console.log(songData);
       this.groups = songData.verticalGroups;
+
+      const playerStore = usePlayerStore();
+      playerStore.setInstruments(songData.instruments);
+      playerStore.setSelectedInstrument(songData.instruments[0]);
     };
 
     // const calcGroups = (osmd: OSMD) => {

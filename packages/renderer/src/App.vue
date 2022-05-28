@@ -125,6 +125,10 @@ body {
   background: transparent;
 }
 
+* {
+  box-sizing: border-box;
+}
+
 /* >>> #cursorImg-1 {
   transition: all 0.2s ease-in-out;
 } */
