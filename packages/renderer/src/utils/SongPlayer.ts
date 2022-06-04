@@ -24,7 +24,7 @@ function triggerKeys() {
   if (player.playing) {
     setTimeout(() => {
       advancePosition();
-    }, group.length * 3000);
+    }, group.length * 2000);
   }
 }
 
@@ -42,6 +42,9 @@ function advancePosition() {
 export const SongPlayer = {
   play: () => {
     const player = usePlayerStore();
+    if (player.playing) {
+      return;
+    }
     player.setPlaying(true);
     triggerKeys();
   },

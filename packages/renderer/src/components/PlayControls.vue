@@ -33,8 +33,8 @@
           <label>Accompany with other hand / instruments</label>
         </div>
       </div>
-      <button @click="play">PLAY</button>
-      <button @click="stop">STOP</button>
+      <button @click="play" :disabled="playing">PLAY</button>
+      <button @click="stop" :disabled="!playing">STOP</button>
       <button @click="reset">RESET</button>
     </div>
     <!--
@@ -101,6 +101,10 @@ export default defineComponent({
   setup() {
     const playerStore = usePlayerStore();
 
+    const playing = computed(() => {
+      return playerStore.playing;
+    });
+
     const player = computed(() => {
       return playerStore.player;
     });
@@ -163,7 +167,7 @@ export default defineComponent({
       midiService.resetDevice();
     };
 
-    return { player, instruments, selectedInstrument, practiceLeftHand, practiceRightHand, autoAccompany, play, stop, reset };
+    return { playing, player, instruments, selectedInstrument, practiceLeftHand, practiceRightHand, autoAccompany, play, stop, reset };
   },
 
   // methods: {

@@ -13,33 +13,15 @@
           :style="{ left: `${group.left}px`, width: `${group.width}px`, top: `${group.top}px`, height: `${group.height}px` }"
         ></div>
         <div
-          v-if="currGroup"
+          v-show="currGroup"
+          ref="marker"
           class="marker"
           :style="{ left: `${currGroup.left}px`, width: `${currGroup.width}px`, top: `${currGroup.top}px`, height: `${currGroup.height}px` }"
         >
           <div class="marker-highlight"></div>
         </div>
       </div>
-
-      <!-- <div ref="container" class="score-inner-container" @click.right.prevent="openNoteGroupContextMenu($event, -1)">
-        <!-d-        <img v-for="page in pageNumbers" :key="`page-${page}`" :src="'/api/score/' + songData.songId + '/' + (page + 1) + '/image'" width="100%" @load="scoreLoaded"/>-f->
-        <img v-for="(page, index) in pageImages" :key="`page-${index}`" :src="page" width="100%" />
-        <canvas id="score"></canvas>
-        <div ref="marker" :style="{ top: `${markerPosY}px`, left: `${markerPosX}px`, width: `${markerWidth}px`, height: `${markerHeight}px` }" class="marker">
-          <div class="marker-highlight"></div>
-        </div>
-
-        <div
-          v-for="(group, index) in groupPositions"
-          :key="group.index"
-          :class="{ 'start-block': index === startBlock, 'end-block': index === endBlock, selected: group.index === selectedGroup, unselected: selectedGroup !== -1 && group.index !== selectedGroup }"
-          :style="{ left: `${group.posX}px`, width: `${group.width}px`, top: `${group.posY}px`, height: `${group.height}px` }"
-          class="hover-trap"
-          @click.left="setCurrentPosition(index)"
-          @click.right.stop.prevent="openNoteGroupContextMenu($event, index)"
-        ></div>
-
-        <ContextMenu ref="noteGroupContextMenu" @contextMenuClosed="contextMenuClosed()">
+      <!-- <ContextMenu ref="noteGroupContextMenu" @contextMenuClosed="contextMenuClosed()">
           <ContextMenuItem :enabled="selectedGroup !== -1" :text="setLoopStartText()" @select="setLoopStart()"></ContextMenuItem>
           <ContextMenuItem :enabled="selectedGroup !== -1" :text="setLoopEndText()" @select="setLoopEnd()"></ContextMenuItem>
           <ContextMenuItemSeparator />
@@ -52,22 +34,11 @@
 
 <script lang="ts">
 import { ipcRenderer } from "electron";
-import { defineComponent, onMounted, ref, computed } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { EngravingRules, IOSMDOptions, OpenSheetMusicDisplay as OSMD } from "opensheetmusicdisplay";
-import { useSongStore } from "../store/song-store";
-import { Vue } from "pinia/node_modules/vue-demi";
-import { TIMEOUT } from "dns";
-import { SongParser, VerticalGroup } from "../utils/SongParser";
+import { IOSMDOptions, OpenSheetMusicDisplay as OSMD } from "opensheetmusicdisplay";
+import { computed, defineComponent, nextTick, onMounted, onUnmounted, ref } from "vue";
 import { usePlayerStore } from "../store/player-store";
-
-// interface GroupPosition {
-//   readonly index: number;
-//   readonly posX: number;
-//   readonly posY: number;
-//   readonly width: number;
-//   readonly height: number;
-// }
+import { useSongStore } from "../store/song-store";
+import { SongParser, VerticalGroup } from "../utils/SongParser";
 
 export default defineComponent({
   name: "SongPage",
@@ -75,15 +46,24 @@ export default defineComponent({
   // components: { ContextMenu, ContextMenuItem, ContextMenuItemSeparator },
 
   setup() {
+    const songs = useSongStore();
     const player = usePlayerStore();
 
-    const showLoading = ref(true);
     const groups = computed(() => {
       return player.groups;
     });
+
     const currGroup = computed(() => {
-      return player.groups[player.position];
+      return player.groups[player.position] ?? <VerticalGroup>{ left: 0, top: 0, width: 0, height: 0 };
     });
+
+    const showLoading = ref(true);
+    const osmdDiv = ref("osmdContainer");
+    const marker = ref<HTMLDivElement>();
+
+    const scrollMarkerIntoView = () => {
+      marker.value?.scrollIntoView({ behavior: "smooth", block: "center" });
+    };
 
     onMounted(() => {
       const parseSong = (osmd: OSMD) => {
@@ -95,199 +75,52 @@ export default defineComponent({
         playerStore.setInstruments(songData.instruments);
         playerStore.setSelectedInstrument(songData.instruments[0]);
         playerStore.setGroups(songData.verticalGroups);
+
+        SongParser.printDebug(songData);
       };
-    });
-    // const store = useStore();
-    // const route = useRoute();
-    // const router = useRouter();
-    // const songs = useSongStore();
-    // const key = ref("1");
-    // const showLoading = ref(true);
-    // const osmdDiv = ref("osmdContainer");
-    // const options: IOSMDOptions = {
-    //   backend: "svg",
-    //   drawTitle: true,
-    //   // drawingParameters: "compacttight" // don't display title, composer etc., smaller margins
-    // };
-    // const groups: { id: number; left: number; top: number; width: number; height: number }[] = [];
-    // onMounted(async () => {
-    // });
-    // const cursor = osmd.cursor;
-    // cursor.reset();
-    // cursor.show();
-    // const horizMargin = 5;
-    // osmd.GraphicSheet.VerticalGraphicalStaffEntryContainers.forEach((containerEntry) => {
-    //   console.log(`Entry: ${containerEntry.Index}, time=${containerEntry.AbsoluteTimestamp.RealValue}`);
-    //   containerEntry.StaffEntries.forEach((staffEntry, staffIndex) => {
-    //     // console.log(`    Staff: ${staffIndex}`);
-    //     staffEntry.graphicalVoiceEntries.forEach((voiceEntry) => {
-    //       const box = staffEntry.PositionAndShape;
-    //       console.log(box.BorderLeft);
-    //       const left = (box.AbsolutePosition.x + box.BoundingRectangle.x) * 10 - 3 - horizMargin;
-    //       const top = (box.AbsolutePosition.y + box.BoundingRectangle.y) * 10;
-    //       const width = box.BoundingRectangle.width * 10 + horizMargin * 2;
-    //       const height = box.BoundingRectangle.height * 10;
-    //       groups.push({ left, top, width, height });
-    //       voiceEntry.notes.forEach((note) => {
-    //         const sourceNote = note.sourceNote;
-    //         // console.log(`        Note: ${sourceNote.isRest() ? "Rest" : sourceNote.halfTone}, Length: ${sourceNote.Length.RealValue}`);
-    //       });
-    //     });
-    //   });
-    // });
-    // } catch {
-    //   await router.push("/song-list");
-    // }
-    //});
-    return { showLoading, groups, currGroup };
-  },
 
-  data() {
-    return {
-      showLoading: false,
-      groups: [] as VerticalGroup[],
-    };
-  },
-
-  mounted() {
-    const options: IOSMDOptions = {
-      backend: "svg",
-      drawTitle: true,
-      // drawingParameters: "compacttight" // don't display title, composer etc., smaller margins
-    };
-
-    const parseSong = (osmd: OSMD) => {
-      const songData = SongParser.calc(osmd);
-      console.log(songData);
-      this.groups = songData.verticalGroups;
-
-      const playerStore = usePlayerStore();
-      playerStore.setInstruments(songData.instruments);
-      playerStore.setSelectedInstrument(songData.instruments[0]);
-      playerStore.setGroups(songData.verticalGroups);
-
-      SongParser.printDebug(songData);
-    };
-
-    const songs = useSongStore();
-    const osmdDiv = this.$refs.osmdContainer as HTMLDivElement;
-    // const key = ref("1");
-    // const showLoading = ref(true);
-    // const osmdDiv = ref("osmdContainer");
-
-    //   try {
-    // const songId = route.params.songId as string;
-    // await store.dispatch("fetchSong", songId);
-    ipcRenderer.send("get-music-xml", songs.selectedSong?.file);
-    ipcRenderer.once("music-xml-loaded", async (_event, ...args) => {
-      this.showLoading = false;
-
-      class A extends OSMD {
-        protected handleResize(startCallback: () => void, endCallback: () => void): void {
-          super.handleResize(
-            () => {
-              startCallback();
-            },
-            () => {
-              endCallback();
-              parseSong(this);
-            }
-          );
+      ipcRenderer.send("get-music-xml", songs.selectedSong?.file);
+      ipcRenderer.once("music-xml-loaded", async (_event, ...args) => {
+        class A extends OSMD {
+          protected handleResize(startCallback: () => void, endCallback: () => void): void {
+            super.handleResize(
+              () => {
+                startCallback();
+              },
+              () => {
+                endCallback();
+                parseSong(this);
+                showLoading.value = false;
+                nextTick(() => {
+                  console.log(marker.value);
+                  marker.value?.addEventListener("transitionend", scrollMarkerIntoView);
+                });
+              }
+            );
+          }
         }
-      }
 
-      const osmd = new A(osmdDiv, options);
+        const options: IOSMDOptions = {
+          backend: "svg",
+          drawTitle: true,
+        };
+        const osmd = new A(osmdDiv.value, options);
 
-      // // // osmd.EngravingRules.RenderSingleHorizontalStaffline = true;
-      await osmd.load(args[0]);
-      // osmd.AutoResizeEnabled = false;
-
-      // setTimeout(() => {
-      // const horizMargin = 5;
-
-      // }, 2000);
-
-      // osmd.enableOrDisableCursors(true);
+        // // // osmd.EngravingRules.RenderSingleHorizontalStaffline = true;
+        await osmd.load(args[0]);
+      });
     });
+
+    onUnmounted(() => {
+      marker.value?.removeEventListener("transitionend", scrollMarkerIntoView);
+    });
+
+    return { showLoading, groups, currGroup, osmdDiv, marker };
   },
-  //   const router = useRouter();
 
-  //   route.params currentRoute.value.params
-  //   try {
-  //     const songId = this.$route.params.songId as string;
-  //     await this.$store.dispatch("fetchSong", songId);
-  //     this.songData = await songService.getSongData(songId);
-  //   } catch {
-  //     await this.$router.push("/song-list");
-  //   }
-  // },
-
-  //data() {
-  //     songData: {} as ApiSongData,
-  //     ctx: {} as CanvasRenderingContext2D,
-  //     markerPosX: 0,
-  //     markerPosY: 0,
-  //     markerWidth: 0,
-  //     markerHeight: 0,
-  //     pressedKeysWatchHandler: null as (() => void) | null,
-  //     positionHandler: null as (() => void) | null,
-  //     marker: null as HTMLDivElement | null,
-  //     groupPositions: [] as GroupPosition[],
-  //     selectedGroup: -1,
-  //     pageImages: [] as string[],
-  //    showLoading: true,
-  //     resizeObserver: null as ResizeObserver | null,
-  //  };
-  // },
-
-  // async mounted() {
-  //   this.showLoading = true;
-
-  //   try {
-  //     const songId = this.$route.params.songId as string;
-  //     await this.$store.dispatch("fetchSong", songId);
-  //     this.songData = await songService.getSongData(songId);
-  //   } catch {
-  //     await this.$router.push("/song-list");
-  //   }
-
-  //   this.$store.commit("setNoteGroups", this.songData.noteGroups);
-  //   this.$store.commit("setSustainPresses", this.songData.sustainPresses);
-  //   this.$store.commit("setDivisions", this.songData.divisions);
-  //   this.$store.commit("setTempoFactor", this.songData.tempoFactor);
-
-  //   await this.loadPageImages();
-
-  //   this.$nextTick().then(this.scoreLoaded);
-  //   // await this.$nextTick(async () => {
-  //   //   await this.scoreLoaded();
-  //   // });
-
-  //   this.pressedKeysWatchHandler = this.$store.watch(
-  //     () => midi(this.$store).pressedKeys,
-  //     (newValue) => {
-  //       if (newValue.length > 0) {
-  //         this.$store.dispatch("triggerKeys", newValue);
-  //       }
-  //     }
-  //   );
-  // },
-
-  // unmounted() {
-  //   if (this.pressedKeysWatchHandler) {
-  //     this.pressedKeysWatchHandler();
-  //   }
-  //   if (this.positionHandler) {
-  //     this.positionHandler();
-  //   }
-  //   if (this.resizeObserver) {
-  //     this.resizeObserver.disconnect();
-  //   }
-
-  //   this.marker?.removeEventListener("transitionend", this.scrollMarkerIntoView);
-
-  //   this.$store.dispatch("resetPlay");
-  // },
+  // mounted() {
+  //   const songs = useSongStore();
+  //   const osmdDiv = this.$refs.osmdContainer as HTMLDivElement;
 
   // methods: {
   //   async loadPageImages() {
