@@ -16,11 +16,13 @@ export interface MidiInstrument {
 }
 
 export const AvailableMidiInstruments: MidiInstrument[] = [
-  { name: "Piano", code: 0 },
+  { name: "Piano", code: 1 },
   { name: "Strings", code: 48 },
   { name: "Steel Guitar", code: 25 },
   { name: "Organ", code: 19 },
   { name: "Choir", code: 52 },
+  { name: "Violin", code: 40 },
+  { name: "Viola", code: 41 },
 ];
 
 export interface MidiCallback {
@@ -85,11 +87,7 @@ export const midiService = {
       availableOutputs = midiAccess.outputs;
 
       midiAccess.onstatechange = (e: any) => {
-        if (
-          e.port.type === "output" &&
-          selectedOutput &&
-          e.port.id === selectedOutput.id
-        ) {
+        if (e.port.type === "output" && selectedOutput && e.port.id === selectedOutput.id) {
           if (e.port.state === "connected") {
             midiCallback?.setConnected(true);
           } else {
@@ -116,20 +114,13 @@ export const midiService = {
 
       const lastMidiInstrument = localStorage.getItem("instrument");
       if (lastMidiInstrument) {
-        this.setInstrument(
-          AvailableMidiInstruments.find((it) => it.name === lastMidiInstrument)!
-        );
+        this.setInstrument(AvailableMidiInstruments.find((it) => it.name === lastMidiInstrument)!);
       } else {
         this.setInstrument(AvailableMidiInstruments[0]);
       }
     };
 
-    navigator
-      .requestMIDIAccess({ sysex: true })
-      .then(
-        (midiAccess: MIDIAccess) => onMidiSuccess(midiAccess),
-        this.onMidiFailure
-      );
+    navigator.requestMIDIAccess({ sysex: true }).then((midiAccess: MIDIAccess) => onMidiSuccess(midiAccess), this.onMidiFailure);
   },
 
   release: (noteNumber: number) => {
@@ -142,6 +133,14 @@ export const midiService = {
     if (selectedOutput) {
       selectedOutput.send([128, noteNumber, 0]);
       selectedOutput.send([144, noteNumber, velocity]);
+    }
+  },
+
+  play1: (noteNumber: number, velocity: number, instrument: MidiInstrument, channel: number) => {
+    if (selectedOutput) {
+      selectedOutput.send([192 | channel, instrument.code]);
+      selectedOutput.send([128 | channel, noteNumber, 0]);
+      selectedOutput.send([144 | channel, noteNumber, velocity]);
     }
   },
 
@@ -161,7 +160,13 @@ export const midiService = {
 
   resetDevice: () => {
     if (selectedOutput) {
+      // selectedOutput.send([0xb0, 120, 0]);
+      // selectedOutput.send([0xb0, 121, 0]);
       selectedOutput.send([0xb0, 123, 0]);
+      selectedOutput.send([0xb1, 123, 0]);
+      selectedOutput.send([0xb2, 123, 0]);
+      selectedOutput.send([0xb3, 123, 0]);
+      // selectedOutput.send([0xb0, 255, 0]);
       // selectedOutput.send([0b10110000, 121, 0])
       // selectedOutput.send([0b10110000, 122, 0])
       // selectedOutput.send([0b10110000, 123, 0])
@@ -178,8 +183,7 @@ export const midiService = {
       if (newSelectedInput) {
         selectedInput = newSelectedInput;
         await selectedInput.open();
-        selectedInput.onmidimessage = (message: MIDIMessageEvent) =>
-          getMIDIMessage(message);
+        selectedInput.onmidimessage = (message: MIDIMessageEvent) => getMIDIMessage(message);
       }
     } else {
       selectedInput = null;

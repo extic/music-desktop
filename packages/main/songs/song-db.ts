@@ -42,11 +42,14 @@ function extractInfoFromFiles(song: SongNameAndFile): SongDbEntry {
   const xml = fs.readFileSync(song.file).toString();
 
   const name =
-    extractRegExp(xml, /<credit-type>title[\s\S]*?credit-words.*?>(.*?)<\/credit-words>/g) ??
+    extractRegExp(xml, /<credit-type>title[\s\S]*?credit-words[\s\S]*?>([\s\S]*?)<\/credit-words>/g) ??
     extractRegExp(xml, /<work-title>(.*?)<\/work-title>/g) ??
     song.name;
 
-  const author = extractRegExp(xml, /<credit-type>subtitle[\s\S]*?credit-words.*?>(.*?)<\/credit-words>/g) ?? "";
+  const author =
+    extractRegExp(xml, /<credit-type>composer[\s\S]*?credit-words[\s\S]*?>([\s\S]*?)<\/credit-words>/g) ??
+    extractRegExp(xml, /<credit-type>subtitle[\s\S]*?credit-words[\s\S]*?>([\s\S]*?)<\/credit-words>/g) ??
+    "";
 
   return {
     id: song.name,

@@ -1,6 +1,6 @@
 import { STATEMENT_OR_BLOCK_KEYS } from "@babel/types";
 import { defineStore } from "pinia";
-import { Instrument } from "../utils/SongParser";
+import { Instrument, VerticalGroup } from "../utils/SongParser";
 
 export type PlayerType = "computer" | "human";
 
@@ -12,6 +12,9 @@ export const usePlayerStore = defineStore("player", {
     _practiceLeftHand: true,
     _practiceRightHand: true,
     _autoAccompany: true,
+    _groups: [] as VerticalGroup[],
+    _position: 0,
+    _playing: false,
   }),
 
   getters: {
@@ -38,6 +41,18 @@ export const usePlayerStore = defineStore("player", {
     autoAccompany(state): boolean {
       return state._autoAccompany;
     },
+
+    groups(state): VerticalGroup[] {
+      return state._groups;
+    },
+
+    position(state): number {
+      return state._position;
+    },
+
+    playing(state): boolean {
+      return state._playing;
+    },
   },
 
   actions: {
@@ -63,6 +78,18 @@ export const usePlayerStore = defineStore("player", {
 
     setAutoAccompany(autoAccompany: boolean): void {
       this._autoAccompany = autoAccompany;
+    },
+
+    setGroups(groups: VerticalGroup[]): void {
+      this._groups = groups;
+    },
+
+    setPosition(position: number): void {
+      this._position = position;
+    },
+
+    setPlaying(playing: boolean): void {
+      this._playing = playing;
     },
   },
 });

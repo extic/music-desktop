@@ -21,8 +21,8 @@ async function createWindow() {
   win = new BrowserWindow({
     title: "Extremely Music - Loading...",
     icon: join(__dirname, "../renderer/app-icon.ico"),
-    width: 1200,
-    height: 800,
+    width: 1600,
+    height: 900,
     webPreferences: {
       preload: join(__dirname, "../preload/index.cjs"),
       nodeIntegration: true,

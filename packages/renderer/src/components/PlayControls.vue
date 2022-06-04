@@ -33,6 +33,9 @@
           <label>Accompany with other hand / instruments</label>
         </div>
       </div>
+      <button @click="play">PLAY</button>
+      <button @click="stop">STOP</button>
+      <button @click="reset">RESET</button>
     </div>
     <!--
     <div class="group">
@@ -83,8 +86,10 @@
 <script lang="ts">
 import { defineComponent, computed } from "vue";
 import PlayerSelection from "../components/PlayerSelection.vue";
+import { midiService } from "../services/midi-service";
 import { usePlayerStore, PlayerType } from "../store/player-store";
 import { Instrument } from "../utils/SongParser";
+import { SongPlayer } from "../utils/SongPlayer";
 // import { midi } from "@/store/midi-module";
 // import { midiService } from "@/services/midi-service";
 
@@ -144,17 +149,21 @@ export default defineComponent({
       },
     });
 
-    // const player = ref("computer");
+    const play = () => {
+      SongPlayer.play();
+    };
 
-    // const setPlayer = (value: string) => {
-    //   player.value = value;
-    // };
+    const stop = () => {
+      SongPlayer.stop();
+    };
 
-    // const togglePlayer = () => {
-    //   player.value = player.value === "human" ? "computer" : "human";
-    // };
+    const reset = () => {
+      SongPlayer.stop();
+      playerStore.setPosition(0);
+      midiService.resetDevice();
+    };
 
-    return { player, instruments, selectedInstrument, practiceLeftHand, practiceRightHand, autoAccompany };
+    return { player, instruments, selectedInstrument, practiceLeftHand, practiceRightHand, autoAccompany, play, stop, reset };
   },
 
   // methods: {

@@ -49,7 +49,7 @@
 
 <script lang="ts">
 import { ipcRenderer } from "electron";
-import { defineComponent, ref, watch } from "vue";
+import { defineComponent, ref, watch, computed } from "vue";
 import { AvailableMidiInstruments, MidiDeviceDescriptor, MidiInstrument, midiService } from "../services/midi-service";
 import { useSettingsStore } from "../store/settings-store";
 import { useSongStore } from "../store/song-store";
@@ -63,9 +63,28 @@ export default defineComponent({
     const songs = useSongStore();
 
     const dataFilesPath = ref(settings.dataFilesPath);
-    const midiInputDevice = ref(midiService.selectedInputDescriptor());
-    const midiOutputDevice = ref(midiService.selectedOutputDescriptor());
+    // const midiInputDevice = ref(midiService.selectedInputDescriptor());
+    // const midiOutputDevice = ref(midiService.selectedOutputDescriptor());
     const midiInstrument = ref(midiService.chosenInstrument());
+
+    const midiInputDevice = computed({
+      get(): MidiDeviceDescriptor | null {
+        return midiService.selectedInputDescriptor();
+      },
+      set(newValue: MidiDeviceDescriptor | null) {
+        midiService.setSelectedInput(newValue?.id ?? null);
+      },
+    });
+
+    const midiOutputDevice = computed({
+      get(): MidiDeviceDescriptor | null {
+        return midiService.selectedOutputDescriptor();
+      },
+      set(newValue: MidiDeviceDescriptor | null) {
+        console.log(newValue);
+        midiService.setSelectedOutput(newValue?.id ?? null);
+      },
+    });
 
     // watch(midiInstrument, (currentValue) => {
     //   settings.setMidiInstrument(currentValue);

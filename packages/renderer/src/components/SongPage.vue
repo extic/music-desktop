@@ -12,6 +12,13 @@
           class="group"
           :style="{ left: `${group.left}px`, width: `${group.width}px`, top: `${group.top}px`, height: `${group.height}px` }"
         ></div>
+        <div
+          v-if="currGroup"
+          class="marker"
+          :style="{ left: `${currGroup.left}px`, width: `${currGroup.width}px`, top: `${currGroup.top}px`, height: `${currGroup.height}px` }"
+        >
+          <div class="marker-highlight"></div>
+        </div>
       </div>
 
       <!-- <div ref="container" class="score-inner-container" @click.right.prevent="openNoteGroupContextMenu($event, -1)">
@@ -45,15 +52,8 @@
 
 <script lang="ts">
 import { ipcRenderer } from "electron";
-import { defineComponent, onMounted, ref } from "vue";
-// import ContextMenuItemSeparator from "@/components/menu/ContextMenuItemSeparator.vue";
-// import ContextMenuItem from "@/components/menu/ContextMenuItem.vue";
-// import ContextMenu from "@/components/menu/ContextMenu.vue";
-// import songService from "@/services/song-service";
-// import { player } from "@/store/player-module";
-// import { midi } from "@/store/midi-module";
+import { defineComponent, onMounted, ref, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
-// import { useStore } from "@/store";
 import { EngravingRules, IOSMDOptions, OpenSheetMusicDisplay as OSMD } from "opensheetmusicdisplay";
 import { useSongStore } from "../store/song-store";
 import { Vue } from "pinia/node_modules/vue-demi";
@@ -71,9 +71,32 @@ import { usePlayerStore } from "../store/player-store";
 
 export default defineComponent({
   name: "SongPage",
+
   // components: { ContextMenu, ContextMenuItem, ContextMenuItemSeparator },
 
   setup() {
+    const player = usePlayerStore();
+
+    const showLoading = ref(true);
+    const groups = computed(() => {
+      return player.groups;
+    });
+    const currGroup = computed(() => {
+      return player.groups[player.position];
+    });
+
+    onMounted(() => {
+      const parseSong = (osmd: OSMD) => {
+        const songData = SongParser.calc(osmd);
+        // console.log(songData);
+        // this.groups = songData.verticalGroups;
+
+        const playerStore = usePlayerStore();
+        playerStore.setInstruments(songData.instruments);
+        playerStore.setSelectedInstrument(songData.instruments[0]);
+        playerStore.setGroups(songData.verticalGroups);
+      };
+    });
     // const store = useStore();
     // const route = useRoute();
     // const router = useRouter();
@@ -116,7 +139,7 @@ export default defineComponent({
     //   await router.push("/song-list");
     // }
     //});
-    // return { showLoading, groups };
+    return { showLoading, groups, currGroup };
   },
 
   data() {
@@ -141,47 +164,10 @@ export default defineComponent({
       const playerStore = usePlayerStore();
       playerStore.setInstruments(songData.instruments);
       playerStore.setSelectedInstrument(songData.instruments[0]);
+      playerStore.setGroups(songData.verticalGroups);
+
+      SongParser.printDebug(songData);
     };
-
-    // const calcGroups = (osmd: OSMD) => {
-    //   osmd.GraphicSheet.VerticalGraphicalStaffEntryContainers.forEach((containerEntry) => {
-    //     let left = Number.MAX_VALUE;
-    //     let top = Number.MAX_VALUE;
-    //     let right = Number.MIN_VALUE;
-    //     let bottom = Number.MIN_VALUE;
-    //     containerEntry.StaffEntries.forEach((staffEntry) => {
-    //       // const containsOnlyRests = staffEntry.graphicalVoiceEntries.every((entry) => entry.notes.every((note) => !note.sourceNote.isRest()));
-    //       // if (containsOnlyRests) {
-    //       const box = staffEntry.PositionAndShape;
-    //       console.log(box);
-    //       console.log(box.BoundingRectangle);
-    //       // const measureBox = staffEntry.parentMeasure.ParentMusicSystem.StaffLines[0].PositionAndShape;
-    //       // const measureBox1 = staffEntry.parentMeasure.ParentMusicSystem.StaffLines[1].PositionAndShape;
-    //       // const measureBox = staffEntry.parentMeasure.PositionAndShape;
-    //       const entryLeft = (box.AbsolutePosition.x + box.BoundingRectangle.x) * 10 - 3;
-    //       // const entryTop = (box.AbsolutePosition.y + box.BoundingRectangle.y) * 10;
-    //       const entryRight = entryLeft + box.BoundingRectangle.width * 10;
-    //       // const entryBottom = entryTop + box.BoundingRectangle.height * 10;
-
-    //       // const entryTop = (measureBox.AbsolutePosition.y + measureBox.BoundingRectangle.y) * 10;
-    //       // const entryBottom = (measureBox1.AbsolutePosition.y + measureBox1.BoundingRectangle.y) * 10 + measureBox1.BoundingRectangle.height * 10;
-    //       const entryTop = staffEntry.parentMeasure.ParentMusicSystem.StaffLines[0].PositionAndShape.AbsolutePosition.y * 10;
-    //       const entryBottom =
-    //         staffEntry.parentMeasure.ParentMusicSystem.StaffLines[1].PositionAndShape.AbsolutePosition.y * 10 +
-    //         staffEntry.parentMeasure.ParentMusicSystem.StaffLines[1].StaffHeight * 10;
-    //       // const entryBottom = entryTop + 20;
-
-    //       left = Math.min(left, entryLeft);
-    //       top = Math.min(top, entryTop);
-    //       right = Math.max(right, entryRight);
-    //       bottom = Math.max(bottom, entryBottom);
-    //       // }
-    //     });
-    //     this.groups.push({ id: this.groups.length, left, top, width: right - left, height: bottom - top });
-    //   });
-
-    //   console.log(this.groups);
-    // };
 
     const songs = useSongStore();
     const osmdDiv = this.$refs.osmdContainer as HTMLDivElement;
@@ -536,27 +522,27 @@ export default defineComponent({
   .marker {
     position: absolute;
     background-color: transparent;
-    width: 30px;
-    height: 140px;
     transition: top 0.1s ease-in-out, left 0.1s ease-in-out;
 
     .marker-highlight {
       position: absolute;
-      top: 50px;
-      bottom: 50px;
+      top: -20px;
+      bottom: -20px;
       left: 0;
       right: 0;
       background-color: #5bcdff77;
+      box-shadow: 0 0 3px 3px #5bcdff77;
+      border-radius: 3px;
     }
   }
 
   .group {
     position: absolute;
-    background-color: #ff000045;
+    // background-color: #ff000045;
 
     &:hover {
-      background-color: rgba(132, 151, 255, 0.5);
-      border: 1px solid red;
+      // background-color: rgba(132, 151, 255, 0.5);
+      // border: 1px solid red;
     }
   }
 }
