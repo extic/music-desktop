@@ -16,10 +16,13 @@ function triggerKeys() {
       staffNotes[staffIndex]
         .filter((note) => !note.isRest)
         .forEach((note) => {
+          player.setPressedKey(note.tone.toString(), note.length);
           midiService.play1(note.tone, 0x70, AvailableMidiInstruments[0], 0);
         });
     });
   });
+
+  console.log(player.pressedKeys);
 
   if (player.playing) {
     setTimeout(() => {
@@ -30,13 +33,31 @@ function triggerKeys() {
 
 function advancePosition() {
   const player = usePlayerStore();
-  console.log("advancePosition", player.playing);
+
+  const group = player.groups[player.position];
+  updatePressedKeysTime(group.length);
+
+  // console.log("advancePosition", player.playing);
   if (!player.playing) {
     return;
   }
   player.setPosition(player.position + 1);
 
   triggerKeys();
+}
+
+function updatePressedKeysTime(amount: number) {
+  const player = usePlayerStore();
+
+  Object.entries(player.pressedKeys).forEach(([key, time]) => {
+    time -= amount;
+    if (time > 0) {
+      player.setPressedKey(key, time);
+    } else {
+      player.removePressedKey(key);
+      midiService.release(+key);
+    }
+  });
 }
 
 export const SongPlayer = {
@@ -52,6 +73,7 @@ export const SongPlayer = {
   stop: () => {
     const player = usePlayerStore();
     player.setPlaying(false);
+    player.clearPressedKeys();
   },
 
   // for (let i = 0; i < player.instruments.length; i++) {

@@ -95,60 +95,23 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, computed } from "vue";
+import { PressedKeys, usePlayerStore } from "../store/player-store";
 
 export default defineComponent({
   name: "PianoKeyboard",
 
-  data() {
-    return {
-      keys: {} as { [key: string]: boolean },
-      noteGroups: [],
-      positionHandler: null as (() => void) | null,
+  setup() {
+    const player = usePlayerStore();
+    const keys = computed((): PressedKeys => {
+      return player.pressedKeys;
+    });
+
+    const keyShouldBePressed = (key: number): boolean => {
+      return !!keys.value[+key];
     };
-  },
 
-  mounted() {
-    // let playerState = player(this.$store);
-    // this.noteGroups = playerState.noteGroups;
-    // this.updatePressedKeys(playerState.position);
-    // this.positionHandler = this.$store.watch(
-    //   () => playerState.position,
-    //   (position) => {
-    //     this.updatePressedKeys(position);
-    //   }
-    // );
-  },
-
-  unmounted() {
-    if (this.positionHandler) {
-      this.positionHandler();
-    }
-  },
-
-  methods: {
-    updatePressedKeys(position: number) {
-      // debugger;
-      // const noteGroup = this.noteGroups[position];
-      // const keys: { [key: string]: boolean } = {};
-      // noteGroup.notes.forEach((it) => {
-      //   const key = "key_" + it.noteNumber;
-      //   keys[key] = true;
-      // });
-      // this.keys = keys;
-    },
-
-    whiteKeys(): number[] {
-      return Array.from({ length: 52 }, (_, i) => i + 21);
-    },
-
-    blackKeys(): number[] {
-      return Array.from({ length: 36 }, (_, i) => i + 21);
-    },
-
-    keyShouldBePressed(key: number): boolean {
-      return this.keys["key_" + key];
-    },
+    return { keys, keyShouldBePressed };
   },
 });
 </script>

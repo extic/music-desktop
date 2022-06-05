@@ -1,8 +1,9 @@
-import { STATEMENT_OR_BLOCK_KEYS } from "@babel/types";
 import { defineStore } from "pinia";
 import { Instrument, VerticalGroup } from "../utils/SongParser";
 
 export type PlayerType = "computer" | "human";
+
+export type PressedKeys = { [key: string]: number };
 
 export const usePlayerStore = defineStore("player", {
   state: () => ({
@@ -15,6 +16,7 @@ export const usePlayerStore = defineStore("player", {
     _groups: [] as VerticalGroup[],
     _position: 0,
     _playing: false,
+    _pressedKeys: {} as PressedKeys,
   }),
 
   getters: {
@@ -53,6 +55,10 @@ export const usePlayerStore = defineStore("player", {
     playing(state): boolean {
       return state._playing;
     },
+
+    pressedKeys(state): PressedKeys {
+      return state._pressedKeys;
+    },
   },
 
   actions: {
@@ -90,6 +96,18 @@ export const usePlayerStore = defineStore("player", {
 
     setPlaying(playing: boolean): void {
       this._playing = playing;
+    },
+
+    clearPressedKeys(): void {
+      this._pressedKeys = {};
+    },
+
+    setPressedKey(key: string, time: number) {
+      this._pressedKeys[key] = time;
+    },
+
+    removePressedKey(key: string) {
+      delete this._pressedKeys[key];
     },
   },
 });
