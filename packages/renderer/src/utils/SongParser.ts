@@ -5,6 +5,7 @@ import _ from "lodash";
 export type SongData = {
   instruments: Instrument[];
   verticalGroups: VerticalGroup[];
+  bpm: number;
 };
 
 export type Instrument = {
@@ -130,11 +131,12 @@ function printDebug(songData: SongData) {
 }
 
 export const SongParser = {
-  calc: (osmd: OSMD): SongData => {
+  parse: (osmd: OSMD): SongData => {
     const instruments = parseInstruments(osmd);
     const verticalGroups = parseVerticalGroups(osmd);
+    const bpm = osmd.Sheet.DefaultStartTempoInBpm;
 
-    return { instruments, verticalGroups };
+    return { instruments, verticalGroups, bpm };
   },
 
   printDebug: (songData: SongData) => {

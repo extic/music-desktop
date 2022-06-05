@@ -39,9 +39,25 @@ export default defineComponent({
     const router = useRouter();
     const store = useSongStore();
 
-    const filter = ref("");
+    const filter = computed({
+      get(): string {
+        return store.filter;
+      },
+      set(newValue: string): void {
+        store.setFilter(newValue);
+      },
+    });
+
+    const showAllSongs = computed({
+      get(): boolean {
+        return !store.showFavorites;
+      },
+      set(newValue: boolean): void {
+        store.setShowFavorites(!newValue);
+      },
+    });
+
     const songs = ref([] as Song[]);
-    const showAllSongs = ref(true);
 
     const filteredSongList = computed(() => {
       let filteredSongs = songs.value;

@@ -22,9 +22,10 @@ function triggerKeys() {
   });
 
   if (player.playing) {
+    const delayCoefficient = -player.bpm * 36.66 + 5866;
     setTimeout(() => {
       advancePosition();
-    }, group.length * 2000);
+    }, group.length * delayCoefficient);
   }
 }
 

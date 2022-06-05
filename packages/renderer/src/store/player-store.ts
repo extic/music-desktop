@@ -14,6 +14,7 @@ export const usePlayerStore = defineStore("player", {
     _practiceRightHand: true,
     _autoAccompany: true,
     _groups: [] as VerticalGroup[],
+    _bpm: 0,
     _position: 0,
     _playing: false,
     _pressedKeys: {} as PressedKeys,
@@ -46,6 +47,10 @@ export const usePlayerStore = defineStore("player", {
 
     groups(state): VerticalGroup[] {
       return state._groups;
+    },
+
+    bpm(state): number {
+      return state._bpm;
     },
 
     position(state): number {
@@ -88,6 +93,10 @@ export const usePlayerStore = defineStore("player", {
 
     setGroups(groups: VerticalGroup[]): void {
       this._groups = groups;
+    },
+
+    setBpm(bpm: number): void {
+      this._bpm = bpm;
     },
 
     setPosition(position: number): void {

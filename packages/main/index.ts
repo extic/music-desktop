@@ -20,7 +20,7 @@ let win: BrowserWindow | null = null;
 async function createWindow() {
   win = new BrowserWindow({
     title: "Extremely Music - Loading...",
-    icon: join(__dirname, "../renderer/app-icon.ico"),
+    icon: join(__dirname, "../../packages/renderer/app-icon.ico"),
     width: 1600,
     height: 900,
     webPreferences: {

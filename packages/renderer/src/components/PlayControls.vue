@@ -359,10 +359,26 @@ export default defineComponent({
       background: none;
       cursor: pointer;
 
+      &:disabled {
+        cursor: default;
+        img {
+          filter: opacity(0.1);
+
+          &:hover {
+            filter: opacity(0.1);
+          }
+        }
+      }
+
+      img:hover {
+        filter: opacity(1);
+      }
+
       img {
         width: 3em;
         height: 3em;
         filter: opacity(0.5);
+        transition: filter 0.2s;
       }
     }
   }

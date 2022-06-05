@@ -67,7 +67,7 @@ export default defineComponent({
 
     onMounted(() => {
       const parseSong = (osmd: OSMD) => {
-        const songData = SongParser.calc(osmd);
+        const songData = SongParser.parse(osmd);
         // console.log(songData);
         // this.groups = songData.verticalGroups;
 
@@ -75,6 +75,7 @@ export default defineComponent({
         playerStore.setInstruments(songData.instruments);
         playerStore.setSelectedInstrument(songData.instruments[0]);
         playerStore.setGroups(songData.verticalGroups);
+        playerStore.setBpm(songData.bpm);
 
         SongParser.printDebug(songData);
       };

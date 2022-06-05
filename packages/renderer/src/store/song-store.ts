@@ -6,6 +6,8 @@ export const useSongStore = defineStore("song", {
   state: () => ({
     _songList: [] as Song[],
     _selectedSong: null as Song | null,
+    _filter: "",
+    _showFavorites: false,
   }),
 
   getters: {
@@ -15,6 +17,14 @@ export const useSongStore = defineStore("song", {
 
     selectedSong(state): Song | null {
       return state._selectedSong;
+    },
+
+    filter(state): string {
+      return state._filter;
+    },
+
+    showFavorites(state): boolean {
+      return state._showFavorites;
     },
   },
 
@@ -40,6 +50,14 @@ export const useSongStore = defineStore("song", {
     loadSongs() {
       const settings = useSettingsStore();
       this._songList = <Song[]>ipcRenderer.sendSync("load-songs", settings.dataFilesPath).songs;
+    },
+
+    setFilter(filter: string): void {
+      this._filter = filter;
+    },
+
+    setShowFavorites(showFavorites: boolean): void {
+      this._showFavorites = showFavorites;
     },
   },
 });
