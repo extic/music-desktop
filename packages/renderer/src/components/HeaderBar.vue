@@ -46,8 +46,10 @@ import { computed, defineComponent, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useLayoutStore } from "../store/layout-store";
 import { useMidiStore } from "../store/midi-store";
+import { usePlayerStore } from "../store/player-store";
 import { useSettingsStore } from "../store/settings-store";
 import { useSongStore } from "../store/song-store";
+import { SongPlayer } from "../utils/SongPlayer";
 
 export default defineComponent({
   name: "HeaderBar",
@@ -58,6 +60,7 @@ export default defineComponent({
     const settings = useSettingsStore();
     const layout = useLayoutStore();
     const songs = useSongStore();
+    const player = usePlayerStore();
 
     const isInFullscreen = ref(false);
 
@@ -70,6 +73,7 @@ export default defineComponent({
       // store.dispatch("resetPlay");
       songs.setSelectedSong(null);
       layout.setKeyboardButtonShown(false);
+      SongPlayer.reset();
       router.push({ name: "SongList" });
     };
 

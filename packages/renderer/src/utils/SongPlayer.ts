@@ -60,6 +60,19 @@ function updatePressedKeysTime(amount: number) {
   });
 }
 
+function stop() {
+  const player = usePlayerStore();
+  player.setPlaying(false);
+  player.clearPressedKeys();
+}
+
+function reset() {
+  stop();
+  const player = usePlayerStore();
+  player.setPosition(0);
+  midiService.resetDevice();
+}
+
 export const SongPlayer = {
   play: () => {
     const player = usePlayerStore();
@@ -71,9 +84,11 @@ export const SongPlayer = {
   },
 
   stop: () => {
-    const player = usePlayerStore();
-    player.setPlaying(false);
-    player.clearPressedKeys();
+    stop();
+  },
+
+  reset: () => {
+    reset();
   },
 
   // for (let i = 0; i < player.instruments.length; i++) {

@@ -162,9 +162,7 @@ export default defineComponent({
     };
 
     const reset = () => {
-      SongPlayer.stop();
-      playerStore.setPosition(0);
-      midiService.resetDevice();
+      SongPlayer.reset();
     };
 
     return { playing, player, instruments, selectedInstrument, practiceLeftHand, practiceRightHand, autoAccompany, play, stop, reset };
