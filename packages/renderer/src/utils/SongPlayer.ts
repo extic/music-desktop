@@ -3,7 +3,6 @@ import { usePlayerStore } from "../store/player-store";
 
 function triggerKeys() {
   const player = usePlayerStore();
-  console.log("triggerKeys", player.playing);
   if (!player.playing) {
     return;
   }
@@ -17,12 +16,10 @@ function triggerKeys() {
         .filter((note) => !note.isRest)
         .forEach((note) => {
           player.setPressedKey(note.tone.toString(), note.length);
-          midiService.play1(note.tone, 0x70, AvailableMidiInstruments[0], 0);
+          midiService.play(note.tone, 0x70); //, AvailableMidiInstruments[0], 0);
         });
     });
   });
-
-  console.log(player.pressedKeys);
 
   if (player.playing) {
     setTimeout(() => {
@@ -64,13 +61,13 @@ function stop() {
   const player = usePlayerStore();
   player.setPlaying(false);
   player.clearPressedKeys();
+  midiService.resetDevice();
 }
 
 function reset() {
   stop();
   const player = usePlayerStore();
   player.setPosition(0);
-  midiService.resetDevice();
 }
 
 export const SongPlayer = {

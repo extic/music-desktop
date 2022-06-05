@@ -4,7 +4,25 @@
       <div class="group-label">Who is playing?</div>
       <PlayerSelection />
     </div>
-    <div v-if="player === 'computer'">computer</div>
+    <div v-if="player === 'computer'" class="group-container">
+      <div class="group">
+        <div class="group-label">Play Controls</div>
+        <div class="play-buttons">
+          <button @click="play" :disabled="playing">
+            <img src="../assets/images/play.svg" />
+            <div>Play</div>
+          </button>
+          <button @click="stop" :disabled="!playing">
+            <img src="../assets/images/pause.svg" />
+            <div>Pause</div>
+          </button>
+          <button @click="reset">
+            <img src="../assets/images/stop.svg" />
+            <div>Stop</div>
+          </button>
+        </div>
+      </div>
+    </div>
     <div v-else class="group-container">
       <div class="group">
         <div class="group-label">Choose Instrument</div>
@@ -153,17 +171,9 @@ export default defineComponent({
       },
     });
 
-    const play = () => {
-      SongPlayer.play();
-    };
-
-    const stop = () => {
-      SongPlayer.stop();
-    };
-
-    const reset = () => {
-      SongPlayer.reset();
-    };
+    const play = SongPlayer.play;
+    const stop = SongPlayer.stop;
+    const reset = SongPlayer.reset;
 
     return { playing, player, instruments, selectedInstrument, practiceLeftHand, practiceRightHand, autoAccompany, play, stop, reset };
   },
@@ -331,6 +341,29 @@ export default defineComponent({
       padding: 0.3em 1em;
       border-radius: 4px;
       border: 1px solid lightgray;
+    }
+  }
+
+  .play-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1em;
+
+    button {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5em;
+      align-items: center;
+      border: none;
+      background: none;
+      cursor: pointer;
+
+      img {
+        width: 3em;
+        height: 3em;
+        filter: opacity(0.5);
+      }
     }
   }
 

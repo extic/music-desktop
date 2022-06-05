@@ -92,7 +92,6 @@ export default defineComponent({
                 parseSong(this);
                 showLoading.value = false;
                 nextTick(() => {
-                  console.log(marker.value);
                   marker.value?.addEventListener("transitionend", scrollMarkerIntoView);
                 });
               }
