@@ -11,7 +11,10 @@
           :key="group.id"
           class="group"
           :style="{ left: `${group.left}px`, width: `${group.width}px`, top: `${group.top}px`, height: `${group.height}px` }"
-        ></div>
+          @click="groupClicked(group)"
+        >
+          <div class="hover-trap"></div>
+        </div>
         <div
           v-show="currGroup"
           ref="marker"
@@ -66,6 +69,10 @@ export default defineComponent({
       marker.value?.scrollIntoView({ behavior: "smooth", block: "center" });
     };
 
+    const groupClicked = (group: VerticalGroup) => {
+      player.setPosition(group.id);
+    };
+
     onMounted(() => {
       const parseSong = (osmd: OSMD) => {
         const songData = SongParser.parse(osmd);
@@ -117,7 +124,7 @@ export default defineComponent({
       marker.value?.removeEventListener("transitionend", scrollMarkerIntoView);
     });
 
-    return { showLoading, groups, currGroup, osmdDiv, marker };
+    return { showLoading, groups, currGroup, osmdDiv, marker, groupClicked };
   },
 
   // mounted() {
@@ -326,31 +333,43 @@ export default defineComponent({
     }
   }
 
-  .hover-trap {
-    background-color: transparent;
+  .group {
     position: absolute;
 
-    &.selected,
-    &:hover {
-      background-color: #ff000055;
+    .hover-trap {
+      background-color: transparent;
+      position: absolute;
+      position: absolute;
+      top: -20px;
+      bottom: -20px;
+      left: 0;
+      right: 0;
+      // background-color: #ff000045;
+      border-radius: 3px;
 
-      &.unselected {
-        background-color: transparent;
+      &.selected,
+      &:hover {
+        background-color: #ff000055;
+        box-shadow: 0 0 3px 3px #ff000045;
+
+        &.unselected {
+          background-color: transparent;
+        }
       }
-    }
 
-    &.start-block {
-      border-width: 0.3em 0 0.3em 0.6em;
-      border-color: #ff6464;
-      border-radius: 50% 0 0 50%;
-      border-style: double;
-    }
+      &.start-block {
+        border-width: 0.3em 0 0.3em 0.6em;
+        border-color: #ff6464;
+        border-radius: 50% 0 0 50%;
+        border-style: double;
+      }
 
-    &.end-block {
-      border-width: 0.3em 0.6em 0.3em 0;
-      border-color: #ff6464;
-      border-radius: 0 50% 50% 0;
-      border-style: double;
+      &.end-block {
+        border-width: 0.3em 0.6em 0.3em 0;
+        border-color: #ff6464;
+        border-radius: 0 50% 50% 0;
+        border-style: double;
+      }
     }
   }
 
@@ -371,14 +390,14 @@ export default defineComponent({
     }
   }
 
-  .group {
-    position: absolute;
-    // background-color: #ff000045;
+  // .group {
+  //   position: absolute;
+  //   background-color: #ff000045;
 
-    &:hover {
-      // background-color: rgba(132, 151, 255, 0.5);
-      // border: 1px solid red;
-    }
-  }
+  //   &:hover {
+  //     background-color: rgba(132, 151, 255, 0.5);
+  //     border: 1px solid red;
+  //   }
+  // }
 }
 </style>
