@@ -39,6 +39,7 @@ import { computed, defineComponent, nextTick, onMounted, onUnmounted, ref } from
 import { usePlayerStore } from "../store/player-store";
 import { useSongStore } from "../store/song-store";
 import { SongParser, VerticalGroup } from "../utils/SongParser";
+import { SongPlayer } from "../utils/SongPlayer";
 
 export default defineComponent({
   name: "SongPage",
@@ -76,6 +77,7 @@ export default defineComponent({
         playerStore.setSelectedInstrument(songData.instruments[0]);
         playerStore.setGroups(songData.verticalGroups);
         playerStore.setBpm(songData.bpm);
+        SongPlayer.initInstruments();
 
         SongParser.printDebug(songData);
       };

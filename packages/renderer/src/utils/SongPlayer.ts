@@ -1,39 +1,81 @@
-import { AvailableMidiInstruments, midiService } from "../services/midi-service";
+import _ from "lodash";
+import { midiService } from "../services/midi-service";
 import { usePlayerStore } from "../store/player-store";
+
+function initInstruments() {
+  const player = usePlayerStore();
+  player.instruments.forEach((it) => {
+    midiService.initInstruments(it);
+  });
+}
 
 function triggerKeys() {
   const player = usePlayerStore();
+
   if (!player.playing) {
     return;
   }
 
+  const practiceStaves = getPracticeStaves();
+
+  if (player.player === "computer") {
+    triggerComputerKeys(false, practiceStaves);
+    return;
+  }
+
+  const group = player.groups[player.position];
+  const requiredKeys = practiceStaves
+    .flatMap((staff) => group.notes[staff])
+    .filter((it) => !it.isRest)
+    .map((it) => it.tone);
+  const pressedKeys = player.pressedKeys;
+
+  console.log(player.pressedKeys, requiredKeys);
+
+  if (requiredKeys.length !== pressedKeys.length || !_.isEmpty(_.difference(requiredKeys, pressedKeys))) {
+    return;
+  }
+
+  player.clearPressedKeys();
+
+  const playerHasKeys = requiredKeys.length > 0;
+  triggerComputerKeys(playerHasKeys, practiceStaves);
+}
+
+function triggerComputerKeys(playerHasKeys: boolean, practiceStaves: number[]) {
+  const player = usePlayerStore();
   const group = player.groups[player.position];
 
   const staffNotes = group.notes;
+  let computerHasKeys = false;
   player.instruments.forEach((instrument, index) => {
-    instrument.staffIndexes.forEach((staffIndex) => {
-      staffNotes[staffIndex]
-        .filter((note) => !note.isRest)
-        .forEach((note) => {
-          player.setPressedKey(note.tone.toString(), note.length);
-          midiService.play(note.tone, 0x70); //, AvailableMidiInstruments[0], 0);
-        });
-    });
+    instrument.staffIndexes
+      .filter((it) => !practiceStaves.includes(it))
+      .forEach((staffIndex) => {
+        staffNotes[staffIndex]
+          .filter((note) => !note.isRest)
+          .forEach((note) => {
+            computerHasKeys = true;
+            player.setVirtualOnKey(staffIndex, note.tone.toString(), note.length, note.instrument);
+            midiService.play(note.tone, 0x40, note.instrument); //, AvailableMidiInstruments[0], 0);
+          });
+      });
   });
 
   if (player.playing) {
     const delayCoefficient = -player.bpm * 36.66 + 5866;
+    const timeoutDelay = playerHasKeys && !computerHasKeys ? 0 : group.length * delayCoefficient;
     setTimeout(() => {
       advancePosition();
-    }, group.length * delayCoefficient);
+    }, timeoutDelay);
   }
 }
 
 function advancePosition() {
   const player = usePlayerStore();
-
   const group = player.groups[player.position];
-  updatePressedKeysTime(group.length);
+  updateVirtualOnKeysTime(group.length);
+  console.log(player.virtualOnKeys);
 
   // console.log("advancePosition", player.playing);
   if (!player.playing) {
@@ -44,17 +86,16 @@ function advancePosition() {
   triggerKeys();
 }
 
-function updatePressedKeysTime(amount: number) {
+function updateVirtualOnKeysTime(amount: number) {
   const player = usePlayerStore();
-
-  Object.entries(player.pressedKeys).forEach(([key, time]) => {
-    time -= amount;
-    if (time > 0) {
-      player.setPressedKey(key, time);
-    } else {
-      player.removePressedKey(key);
-      midiService.release(+key);
-    }
+  Object.entries(player.virtualOnKeys).forEach(([staff, virtualOnKeyEntry]) => {
+    Object.entries(virtualOnKeyEntry).forEach(([key, timeAndInstrument]) => {
+      timeAndInstrument.time -= amount;
+      if (timeAndInstrument.time <= 0) {
+        player.removeVirtualOnKey(+staff, key);
+        midiService.release(+key, timeAndInstrument.instrument);
+      }
+    });
   });
 }
 
@@ -62,13 +103,29 @@ function stop() {
   const player = usePlayerStore();
   player.setPlaying(false);
   player.clearPressedKeys();
+  player.resetVirtualOnKeys([]);
   midiService.resetDevice();
 }
 
 function reset() {
-  stop();
   const player = usePlayerStore();
+  stop();
   player.setPosition(0);
+}
+
+function getPracticeStaves(): number[] {
+  const player = usePlayerStore();
+  if (player.player === "computer") {
+    return [];
+  }
+  const staffIndexes = player.selectedInstrument!!.staffIndexes;
+  if (staffIndexes.length === 1 || (player.practiceLeftHand && player.practiceRightHand)) {
+    return staffIndexes;
+  }
+  if (player.practiceLeftHand) {
+    return [staffIndexes[1]];
+  }
+  return [staffIndexes[0]];
 }
 
 export const SongPlayer = {
@@ -78,16 +135,14 @@ export const SongPlayer = {
       return;
     }
     player.setPlaying(true);
+    player.resetVirtualOnKeys(player.instruments.flatMap((it) => it.staffIndexes));
     triggerKeys();
   },
 
-  stop: () => {
-    stop();
-  },
-
-  reset: () => {
-    reset();
-  },
+  stop,
+  reset,
+  triggerKeys,
+  initInstruments,
 
   // for (let i = 0; i < player.instruments.length; i++) {
   //   let instrument = AvailableMidiInstruments[0];

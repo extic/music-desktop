@@ -4,10 +4,13 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import PlayerSelectionVue from "./components/PlayerSelection.vue";
 import { midiService, MidiCallback } from "./services/midi-service";
 import { useMidiStore } from "./store/midi-store";
+import { usePlayerStore } from "./store/player-store";
 import { useSettingsStore } from "./store/settings-store";
 import { useSongStore } from "./store/song-store";
+import { SongPlayer } from "./utils/SongPlayer";
 
 export default defineComponent({
   name: "App",
@@ -16,6 +19,7 @@ export default defineComponent({
     const settings = useSettingsStore();
     const midi = useMidiStore();
     const songs = useSongStore();
+    const player = usePlayerStore();
 
     class MidiCallBackImpl implements MidiCallback {
       setConnected(connected: boolean): void {
@@ -23,12 +27,16 @@ export default defineComponent({
       }
 
       keyOn(key: number, velocity: number) {
-        midi.setUserVelocity(velocity);
-        midi.keyOn(key, velocity);
+        // midi.setUserVelocity(velocity);
+        // midi.keyOn(key, velocity);
+        player.setPressedKey(key);
+        SongPlayer.triggerKeys();
       }
 
       keyOff(key: number) {
-        midi.keyOff(key);
+        player.removePressedKey(key);
+        // midi.keyOff(key);
+        SongPlayer.triggerKeys();
       }
     }
 

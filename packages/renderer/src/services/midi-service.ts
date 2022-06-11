@@ -1,4 +1,5 @@
 import { useMidiStore } from "../store/midi-store";
+import { Instrument } from "../utils/SongParser";
 
 import MIDIAccess = WebMidi.MIDIAccess;
 import MIDIInput = WebMidi.MIDIInput;
@@ -123,24 +124,30 @@ export const midiService = {
     navigator.requestMIDIAccess({ sysex: true }).then((midiAccess: MIDIAccess) => onMidiSuccess(midiAccess), this.onMidiFailure);
   },
 
-  release: (noteNumber: number) => {
+  initInstruments: (instrument: Instrument) => {
     if (selectedOutput) {
-      selectedOutput.send([128, noteNumber, 0]);
+      selectedOutput.send([192 | instrument.midiChannel, instrument.midiInstrument.code]);
     }
   },
 
-  play: (noteNumber: number, velocity: number) => {
+  release: (noteNumber: number, instrument: Instrument) => {
     if (selectedOutput) {
-      selectedOutput.send([128, noteNumber, 0]);
-      selectedOutput.send([144, noteNumber, velocity]);
+      selectedOutput.send([128 | instrument.midiChannel, noteNumber, 0]);
     }
   },
 
-  play1: (noteNumber: number, velocity: number, instrument: MidiInstrument, channel: number) => {
+  // play: (noteNumber: number, velocity: number) => {
+  //   if (selectedOutput) {
+  //     selectedOutput.send([128, noteNumber, 0]);
+  //     selectedOutput.send([144, noteNumber, velocity]);
+  //   }
+  // },
+
+  play: (noteNumber: number, velocity: number, instrument: Instrument) => {
     if (selectedOutput) {
-      selectedOutput.send([192 | channel, instrument.code]);
-      selectedOutput.send([128 | channel, noteNumber, 0]);
-      selectedOutput.send([144 | channel, noteNumber, velocity]);
+      // selectedOutput.send([192 | instrument.midiChannel, instrument.code]);
+      selectedOutput.send([128 | instrument.midiChannel, noteNumber, 0]);
+      selectedOutput.send([144 | instrument.midiChannel, noteNumber, velocity]);
     }
   },
 
@@ -230,7 +237,7 @@ const getMIDIMessage = async (message: MIDIMessageEvent) => {
     } else {
       await midiCallback?.keyOff(key);
     }
-  } else if (command === 145) {
+  } else if (command === 128) {
     await midiCallback?.keyOff(key);
   } else {
     // console.log(command)

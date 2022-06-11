@@ -1,9 +1,12 @@
+import _ from "lodash";
 import { defineStore } from "pinia";
 import { Instrument, VerticalGroup } from "../utils/SongParser";
 
 export type PlayerType = "computer" | "human";
 
-export type PressedKeys = { [key: string]: number };
+export type VirtualOnKeys = { [staff: number]: VirtualOnKeyEntry };
+export type VirtualOnKeyEntry = { [key: string]: VirtualOnKeyData };
+export type VirtualOnKeyData = { time: number; instrument: Instrument };
 
 export const usePlayerStore = defineStore("player", {
   state: () => ({
@@ -17,7 +20,8 @@ export const usePlayerStore = defineStore("player", {
     _bpm: 0,
     _position: 0,
     _playing: false,
-    _pressedKeys: {} as PressedKeys,
+    _pressedKeys: [] as number[],
+    _virtualOnKeys: {} as VirtualOnKeys,
   }),
 
   getters: {
@@ -61,8 +65,12 @@ export const usePlayerStore = defineStore("player", {
       return state._playing;
     },
 
-    pressedKeys(state): PressedKeys {
+    pressedKeys(state): number[] {
       return state._pressedKeys;
+    },
+
+    virtualOnKeys(state): VirtualOnKeys {
+      return state._virtualOnKeys;
     },
   },
 
@@ -108,15 +116,30 @@ export const usePlayerStore = defineStore("player", {
     },
 
     clearPressedKeys(): void {
-      this._pressedKeys = {};
+      this._pressedKeys = [];
     },
 
-    setPressedKey(key: string, time: number) {
-      this._pressedKeys[key] = time;
+    setPressedKey(key: number) {
+      if (!this._pressedKeys.includes(key)) {
+        this._pressedKeys.push(key);
+      }
     },
 
-    removePressedKey(key: string) {
-      delete this._pressedKeys[key];
+    removePressedKey(key: number) {
+      _.pull(this._pressedKeys, key);
+    },
+
+    resetVirtualOnKeys(staffs: number[]): void {
+      this._virtualOnKeys = {};
+      staffs.forEach((staff) => (this._virtualOnKeys[staff] = {}));
+    },
+
+    setVirtualOnKey(staff: number, key: string, time: number, instrument: Instrument) {
+      this._virtualOnKeys[staff][key] = { time, instrument };
+    },
+
+    removeVirtualOnKey(staff: number, key: string) {
+      delete this._virtualOnKeys[staff][key];
     },
   },
 });

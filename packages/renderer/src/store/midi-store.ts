@@ -4,13 +4,10 @@ import { storage } from "../utils/local_storage";
 export const useMidiStore = defineStore("midi", {
   state: () => ({
     _connected: false,
-    _pressedKeys: [] as number[],
+    // _pressedKeys: [] as number[],
     _correctToneVelocity: storage.getNumber("correctToneVelocity", 0x2f),
     _userVelocity: storage.getNumber("userVelocity", 0),
-    _useUserVelocityForAccompanying: storage.getBoolean(
-      "useUserVelocityForAccompanying",
-      false
-    ),
+    _useUserVelocityForAccompanying: storage.getBoolean("useUserVelocityForAccompanying", false),
     _accompanyVelocity: storage.getNumber("accompanyVelocity", 0x40),
   }),
 
@@ -19,9 +16,9 @@ export const useMidiStore = defineStore("midi", {
       return state._connected;
     },
 
-    pressedKeys(state): number[] {
-      return state._pressedKeys;
-    },
+    // pressedKeys(state): number[] {
+    //   return state._pressedKeys;
+    // },
 
     correctToneVelocity(state): number {
       return state._correctToneVelocity;
@@ -45,21 +42,21 @@ export const useMidiStore = defineStore("midi", {
       this._connected = connected;
     },
 
-    setPressedKeys(pressedKeys: number[]) {
-      this._pressedKeys = pressedKeys;
-    },
+    // setPressedKeys(pressedKeys: number[]) {
+    //   this._pressedKeys = pressedKeys;
+    // },
 
-    keyOn(key: number, velocity: number) {
-      const existingKey = this._pressedKeys.find((it) => it === key);
-      if (!existingKey) {
-        this._pressedKeys.push(key);
-      }
-    },
+    // keyOn(key: number, velocity: number) {
+    //   const existingKey = this._pressedKeys.find((it) => it === key);
+    //   if (!existingKey) {
+    //     this._pressedKeys.push(key);
+    //   }
+    // },
 
-    keyOff(key: number) {
-      const filteredKeys = this.pressedKeys.filter((it) => it !== key);
-      this._pressedKeys = filteredKeys;
-    },
+    // keyOff(key: number) {
+    //   const filteredKeys = this.pressedKeys.filter((it) => it !== key);
+    //   this._pressedKeys = filteredKeys;
+    // },
 
     setUserVelocity(userVelocity: number) {
       this._userVelocity = userVelocity;

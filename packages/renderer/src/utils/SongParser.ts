@@ -1,6 +1,7 @@
 import { group } from "console";
 import { OpenSheetMusicDisplay as OSMD, VerticalGraphicalStaffEntryContainer } from "opensheetmusicdisplay";
 import _ from "lodash";
+import { AvailableMidiInstruments, MidiInstrument } from "../services/midi-service";
 
 export type SongData = {
   instruments: Instrument[];
@@ -12,6 +13,7 @@ export type Instrument = {
   name: string;
   midiChannel: number;
   staffIndexes: number[];
+  midiInstrument: MidiInstrument;
 };
 
 export type VerticalGroup = {
@@ -29,6 +31,7 @@ export type Note = {
   tone: number;
   isRest: boolean;
   length: number;
+  instrument: Instrument;
 };
 
 type BoundingBox = {
@@ -42,16 +45,27 @@ function parseInstruments(osmd: OSMD): Instrument[] {
   return osmd.Sheet.Instruments.map((it, instrumentIndex): Instrument => {
     const staffIndexes = it.Staves.map((staff) => staff.idInMusicSheet);
 
-    return { name: it.NameLabel.text, midiChannel: instrumentIndex, staffIndexes };
+    const name = it.NameLabel.text;
+    let midiInstrument: MidiInstrument = AvailableMidiInstruments[0];
+    switch (name) {
+      case "Violon":
+        midiInstrument = AvailableMidiInstruments[1];
+        break;
+      case "Violoncelle":
+        midiInstrument = AvailableMidiInstruments[2];
+        break;
+    }
+
+    return { name, midiChannel: instrumentIndex, staffIndexes, midiInstrument };
   });
 }
 
-function parseVerticalGroups(osmd: OSMD): VerticalGroup[] {
+function parseVerticalGroups(osmd: OSMD, instruments: Instrument[]): VerticalGroup[] {
   const groups: VerticalGroup[] = [];
 
   osmd.GraphicSheet.VerticalGraphicalStaffEntryContainers.forEach((containerEntry) => {
     const { left, top, right, bottom } = calcBoundingBox(containerEntry);
-    const notes = calcNotes(containerEntry, osmd.Sheet.Staves.length);
+    const notes = calcNotes(containerEntry, osmd.Sheet.Staves.length, instruments);
 
     const time = containerEntry.AbsoluteTimestamp.RealValue;
     const allNotes = Object.values(notes).flatMap((it) => it);
@@ -94,18 +108,20 @@ function calcBoundingBox(containerEntry: VerticalGraphicalStaffEntryContainer): 
   return { left, top, right, bottom };
 }
 
-function calcNotes(containerEntry: VerticalGraphicalStaffEntryContainer, staffCount: number): { [staff: number]: Note[] } {
+function calcNotes(containerEntry: VerticalGraphicalStaffEntryContainer, staffCount: number, instruments: Instrument[]): { [staff: number]: Note[] } {
   const notes: { [staff: number]: Note[] } = {};
   for (let i = 0; i < staffCount; i++) {
     const staffEntry = containerEntry.StaffEntries[i];
     const staffNotes: Note[] = [];
     if (staffEntry) {
+      const instrument = instruments.find((it) => it.staffIndexes.includes(i))!!;
       staffEntry.graphicalVoiceEntries.forEach((voice) => {
-        const voiceNotes = voice.notes.map((note) => {
+        const voiceNotes = voice.notes.map((note): Note => {
           return {
             tone: note.sourceNote.halfTone + 12,
             isRest: note.sourceNote.isRest(),
             length: note.sourceNote.Length.RealValue,
+            instrument,
           };
         });
         staffNotes.push(...voiceNotes);
@@ -133,7 +149,7 @@ function printDebug(songData: SongData) {
 export const SongParser = {
   parse: (osmd: OSMD): SongData => {
     const instruments = parseInstruments(osmd);
-    const verticalGroups = parseVerticalGroups(osmd);
+    const verticalGroups = parseVerticalGroups(osmd, instruments);
     const bpm = osmd.Sheet.DefaultStartTempoInBpm;
 
     return { instruments, verticalGroups, bpm };
