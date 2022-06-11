@@ -53,7 +53,7 @@ function triggerComputerKeys(playerHasKeys: boolean, practiceStaves: number[]) {
       .filter((it) => !practiceStaves.includes(it))
       .forEach((staffIndex) => {
         staffNotes[staffIndex]
-          .filter((note) => !note.isRest)
+          .filter((note) => !note.isRest && !note.isTied)
           .forEach((note) => {
             computerHasKeys = true;
             player.setVirtualOnKey(staffIndex, note.tone.toString(), note.length, note.instrument);
@@ -143,29 +143,4 @@ export const SongPlayer = {
   reset,
   triggerKeys,
   initInstruments,
-
-  // for (let i = 0; i < player.instruments.length; i++) {
-  //   let instrument = AvailableMidiInstruments[0];
-  //   // if (i === 0) {
-  //   //   instrument = AvailableMidiInstruments[5];
-  //   // } else if (i === 1) {
-  //   //   instrument = AvailableMidiInstruments[6];
-  //   // }
-
-  //   instrument.
-
-  //   staffNotes[+i].forEach((note) => {
-  //     console.log(note);
-  //     midiService.play1(note, 0x70, instrument, i);
-  //   });
-  // }
-  // console.log(notes);
-  // Object.values(staffNotes).forEach((notes) => {
-  //   notes.forEach((note) => {
-  //     console.log(note);
-  //     midiService.play(note, 0x70);
-  //   });
-  // });
-  // midiService.play
-  // }, 1000);
 };

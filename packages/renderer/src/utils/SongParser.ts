@@ -30,6 +30,7 @@ export type VerticalGroup = {
 export type Note = {
   tone: number;
   isRest: boolean;
+  isTied: boolean;
   length: number;
   instrument: Instrument;
 };
@@ -120,6 +121,7 @@ function calcNotes(containerEntry: VerticalGraphicalStaffEntryContainer, staffCo
           return {
             tone: note.sourceNote.halfTone + 12,
             isRest: note.sourceNote.isRest(),
+            isTied: !!note.sourceNote.NoteTie && note.sourceNote.NoteTie.StartNote !== note.sourceNote,
             length: note.sourceNote.Length.RealValue,
             instrument,
           };
