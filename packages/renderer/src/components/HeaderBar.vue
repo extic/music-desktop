@@ -9,6 +9,7 @@
       </div>
     </div>
     <div class="controls">
+      <button v-if="song" class="edit-button" @click="showEditSongPane">Edit</button>
       <div class="midi">
         <img v-if="isMidiConnected" alt="midi on" src="../assets/images/midi-connected.svg" title="MIDI device connected successfully" />
         <img v-else alt="midi off" class="disconnected" src="../assets/images/midi-disconnected.svg" title="MIDI device is not connected" />
@@ -46,7 +47,6 @@ import { computed, defineComponent, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useLayoutStore } from "../store/layout-store";
 import { useMidiStore } from "../store/midi-store";
-import { usePlayerStore } from "../store/player-store";
 import { useSettingsStore } from "../store/settings-store";
 import { useSongStore } from "../store/song-store";
 import { SongPlayer } from "../utils/SongPlayer";
@@ -60,7 +60,6 @@ export default defineComponent({
     const settings = useSettingsStore();
     const layout = useLayoutStore();
     const songs = useSongStore();
-    const player = usePlayerStore();
 
     const isInFullscreen = ref(false);
 
@@ -99,6 +98,10 @@ export default defineComponent({
       await router.push({ name: "Admin" });
     };
 
+    const showEditSongPane = (e: Event) => {
+      songs.setEditSongPaneShown(true);
+    };
+
     return {
       isInFullscreen,
       song,
@@ -110,6 +113,7 @@ export default defineComponent({
       setKeyboardShown,
       showSettings,
       goToAdmin,
+      showEditSongPane,
     };
   },
 });
@@ -127,6 +131,10 @@ export default defineComponent({
   padding: 0 1em;
   box-sizing: border-box;
   border-bottom: 1px solid gray;
+
+  &:hover > .controls > .edit-button {
+    opacity: 1;
+  }
 
   .back-button {
     margin-right: 3em;
@@ -167,6 +175,24 @@ export default defineComponent({
     display: flex;
     align-items: center;
     gap: 1em;
+
+    .edit-button {
+      opacity: 0;
+      transition: opacity 0.2s, background-color 0.2s, border 0.2s, color 0.2s;
+      cursor: pointer;
+      background-color: #00000033;
+      border: 1px solid #00000055;
+      border-radius: 4px;
+      padding: 0.2em 1em;
+      color: #dfdfdf;
+      margin-right: 1em;
+
+      &:hover {
+        background-color: #00000022;
+        border: 1px solid #00000033;
+        color: #ffffff;
+      }
+    }
 
     .button {
       width: 1.5em;

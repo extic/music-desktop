@@ -169,9 +169,9 @@ export default defineComponent({
       border: none;
       background: none;
       font-size: 2em;
-      width: 1.2em;
-      height: 1.2em;
-      line-height: 1.2em;
+      width: 1.4em;
+      height: 1.4em;
+      line-height: 1.4em;
       border-radius: 50%;
       transition: color 0.2s, background-color 0.2s;
       cursor: pointer;
@@ -186,7 +186,7 @@ export default defineComponent({
   .field {
     display: flex;
     flex-direction: column;
-    margin-bottom: 1em;
+    margin-bottom: 2em;
 
     .one-liner {
       display: flex;

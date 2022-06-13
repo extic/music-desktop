@@ -8,6 +8,7 @@ export const useSongStore = defineStore("song", {
     _selectedSong: null as Song | null,
     _filter: "",
     _showFavorites: false,
+    _editSongPaneShown: false,
   }),
 
   getters: {
@@ -25,6 +26,10 @@ export const useSongStore = defineStore("song", {
 
     showFavorites(state): boolean {
       return state._showFavorites;
+    },
+
+    editSongPaneShown(state): boolean {
+      return state._editSongPaneShown;
     },
   },
 
@@ -58,6 +63,10 @@ export const useSongStore = defineStore("song", {
 
     setShowFavorites(showFavorites: boolean): void {
       this._showFavorites = showFavorites;
+    },
+
+    setEditSongPaneShown(editSongPaneShown: boolean): void {
+      this._editSongPaneShown = editSongPaneShown;
     },
   },
 });
